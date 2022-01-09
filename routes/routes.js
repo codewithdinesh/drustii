@@ -10,25 +10,29 @@ const upload = Fileupload.upload;
 
 const controller = require("../controller/controller")
 
-const createUser=require("../controller/user/createUser");
+const createUser = require("../controller/user/createUser").createUser;
 
+const auth = require("../middleware/auth");
 
-app.get("/", controller.homePage);
+const userLogin=require('../controller/user/userLogin')
+
+app.get("/", auth, controller.homePage);
+
 
 
 app.post("/upload", upload.single("file"), controller.uploadPage);
 
-app.post('/create-user',controller.createUser);
-app.get('/create-user',(req,res)=>{
+app.post('/create-user', createUser);
+app.get('/create-user', (req, res) => {
 
     res.render('userRegister')
 })
 
-app.post('/create-creator',controller.createCreator);
+app.post('/create-creator', controller.createCreator);
 
-app.post('/login',controller.userlogin);
+app.post('/login', userLogin);
 
-app.get('/login',controller.loginPage);
+app.get('/login', controller.loginPage);
 
 app.get("/videos", controller.videos);
 

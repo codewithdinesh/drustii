@@ -1,21 +1,25 @@
 const mongoose = require('mongoose');
-const Fileupload = require("./FileUpload");
-const upload = Fileupload.upload;
-const config = require('../config/config');
-const conCreate = require("../config/db").conCreate;
-const VideoSchema = require('../model/video')
-const connConnect = require("../config/db").conConnect;
-const creatorModel = require('../model/creator');
-const userModel = require('../model/User');
+
+const Fileupload = require("../FileUpload");
+
+const conCreate = require("../../config/db").conCreate;
+
+
+const connConnect = require("../../config/db").conConnect;
+
+
+const userModel = require('../../model/User');
+
 const bcrypt = require("bcrypt");
+
+const jwt = require('jsonwebtoken');
 
 const userlogin = (req, result) => {
 
-    let username = req.body.email;
+    let email = req.body.email;
     let password = req.body.password;
 
-
-    userModel.findOne({ email: username }, function (err, user) {
+    userModel.findOne({ email: email }, function (err, user) {
         if (err) return err;
         if (!user) return result.send("err");
 
@@ -24,9 +28,28 @@ const userlogin = (req, result) => {
             if (res === false) {
                 return console.log("password not match");
             }
-            console.log("Success")
+            console.log("Success");
+            // Create token
+            const token = jwt.sign(
+                { user_id: user._id, email },
+                "TOKEN_KEY",
+                {
+                    expiresIn: "2h",
+                }
+            );
+            // save user token
+            user.token = token;
+            let options = {
+                path:"/",
+                sameSite:true,
+                maxAge: 1000 * 60 * 60 * 24, // would expire after 24 hours
+                httpOnly: true, // The cookie only accessible by the web server
+            }
+        
+            result.cookie('access_token',token, options) 
             result.redirect('/');
         });
 
     });
 }
+module.exports = userlogin;
