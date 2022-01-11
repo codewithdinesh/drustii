@@ -67,24 +67,33 @@ const homePage = (req, res) => {
 
 //upload
 const uploadPage = (req, res) => {
-    console.log(req.file.id);
+    if (!req.id) {
 
-    const video = new VideoSchema({
-        source: req.file.id,
-        title: req.file.filename,
-        description: "This is description",
-    });
+        console.log("File not selected");
+        res.redirect("/");
 
-    video.save(video)
-        .then(data => {
-            res.send(data);
-            console.log("Data :" + data)
-        })
-        .catch(err => {
-            console.log("Error" + err)
+    } else {
 
+
+        console.log(req.file.id);
+
+        const video = new VideoSchema({
+            source: req.file.id,
+            title: req.file.filename,
+            description: "This is description",
         });
-    res.redirect("/");
+
+        video.save(video)
+            .then(data => {
+                res.send(data);
+                console.log("Data :" + data)
+            })
+            .catch(err => {
+                console.log("Error" + err)
+
+            });
+        res.redirect("/");
+    }
 }
 
 
@@ -120,59 +129,8 @@ const createCreator = async (req, res) => {
     });
 }
 
-/* Create Normal User */
-const createUser = async (req, res, next) => {
-
-    const exists = await userModel.exists({ username: req.body.username });
-    console.log(exists);
-    console.log(req.body.username);
-
-    if (exists) {
-        res.redirect('/login');
-        return;
-    };
-
-    bcrypt.genSalt(10, function (err, salt) {
-        console.log(req.body.password)
-        if (err) return next(err);
-        bcrypt.hash(req.body.password, salt, function (err, hash) {
-            console.log(hash);
-            if (err) return next(err);
-
-            const newUser = new userModel({
-                username: req.body.username,
-                password: hash,
-                email: req.body.email,
-                avatar: req.body.avatar
-            });
-
-            newUser.save();
-            res.redirect('/login');
-        });
-    });
-}
-
-const userlogin = (req, result) => {
-
-    let username = req.body.email;
-    let password = req.body.password;
 
 
-    userModel.findOne({ email: username }, function (err, user) {
-        if (err) return err;
-        if (!user) return result.send("err");
-
-        bcrypt.compare(password, user.password, function (err, res) {
-            if (err) return err;
-            if (res === false) {
-                return console.log("password not match");
-            }
-            console.log("Success")
-            result.redirect('/')
-        });
-
-    });
-}
 
 const loginPage = (req, res) => {
     res.render('login');
@@ -184,8 +142,6 @@ module.exports = {
     homePage,
     uploadPage,
     loginPage,
-    userlogin,
-    createUser,
     createCreator,
     videos: (req, res) => {
         gfs.find().toArray((err, files) => {

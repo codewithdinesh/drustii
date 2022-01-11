@@ -13,7 +13,7 @@
     "nodemon": "^2.0.15",
     "path": "^0.12.7"
   },
-  "name": "file-last",
+  "name": "drustii",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
