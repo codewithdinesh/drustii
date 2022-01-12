@@ -9,15 +9,18 @@ const controller = require("../controller/controller")
 
 const createUser = require("../controller/user/createUser");
 
+const createCreator = require('../controller/creator/createCreator');
+
 const auth = require("../middleware/auth");
 
-const userLogin=require('../controller/user/userLogin')
+const userLogin = require('../controller/user/userLogin');
 
-app.get("/", auth, controller.homePage);
+const creatorLogin = require('../controller/creator/creatorLogin');
+
+app.get("/", controller.homePage);
 
 
-
-app.post("/upload", upload.single("file"), controller.uploadPage);
+app.post("/upload", auth, upload.single("file"), controller.uploadPage);
 
 app.post('/create/user', createUser);
 app.get('/create-user', (req, res) => {
@@ -25,11 +28,21 @@ app.get('/create-user', (req, res) => {
     res.render('userRegister')
 })
 
-app.post('/create/creator', controller.createCreator);
+app.get('/create/creator', (req, res) => {
 
-app.post('/login', userLogin);
+    res.render('creatorRegister')
+})
+app.post('/create/creator', createCreator);
 
-app.get('/login', controller.loginPage);
+app.post('/login/user', userLogin);
+
+app.post('/login/creator', creatorLogin);
+
+app.get('/login/user', controller.loginPage);
+
+app.get('/login/creator', (req, res) => {
+    res.render('creatorLogin');
+})
 
 app.get("/videos", controller.videos);
 

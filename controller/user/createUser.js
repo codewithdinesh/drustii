@@ -56,10 +56,11 @@ const createUser = async (req, res, next) => {
                     const newUser = new userModel({
                         username: username,
                         password: hash,
-                        email: email,
-                        avatar: avatar
+                        email: email
                     });
-
+                    if (avatar) {
+                        newUser.avatar = avatar;
+                    }
                     // Create token
                     const token = jwt.sign(
                         {

@@ -76,6 +76,7 @@ const uploadPage = (req, res) => {
 
 
         console.log(req.file.id);
+        console.log(req.user);
 
         const video = new VideoSchema({
             source: req.file.id,

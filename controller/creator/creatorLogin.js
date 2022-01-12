@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const connConnect = require("../../config/db").conConnect;
-const userModel = require('../../model/User');
+const creatorModel = require('../../model/creator');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const validateEmail = require('../emailValidate');
 const TimeStamp = require('../TimeStamp');
 
-const userlogin = (req, result, next) => {
+const creatorlogin = (req, result, next) => {
 
     let email = req.body.email;
     let password = req.body.password;
@@ -16,11 +16,11 @@ const userlogin = (req, result, next) => {
 
     } else {
         if (validateEmail(email) == true) {
-            userModel.findOne({ email: email }, function (err, user) {
+            creatorModel.findOne({ email: email }, function (err, creator) {
                 if (err) return err;
-                if (!user) return result.status(401).send({ "status": "user not found", "email": email, "ResponseCreated": TimeStamp() });
+                if (!creator) return result.status(401).send({ "status": "user not found", "email": email, "ResponseCreated": TimeStamp() });
 
-                bcrypt.compare(password, user.password, function (err, res) {
+                bcrypt.compare(password, creator.password, function (err, res) {
                     if (err) return err;
                     if (res === false) {
                         return result.status(401).send({ "status": "password not match", "email": email, "ResponseCreated": TimeStamp() })
@@ -29,7 +29,7 @@ const userlogin = (req, result, next) => {
                     // Create token
                     const token = jwt.sign(
                         {
-                            user_id: user._id
+                            creator_id: creator._id
                         },
                         process.env.SECRET_KEY,
                         {
@@ -38,7 +38,7 @@ const userlogin = (req, result, next) => {
                     );
 
                     // save user token
-                    user.token = token;
+                    creator.token = token;
                     let options = {
                         path: "/",
                         sameSite: true,
@@ -64,4 +64,4 @@ const userlogin = (req, result, next) => {
 
 
 }
-module.exports = userlogin;
+module.exports = creatorlogin;
