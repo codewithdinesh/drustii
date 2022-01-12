@@ -25,11 +25,11 @@ const VideoSchema = new mongoose.Schema({
           default:false
       }, */
 
-    /*  creator: {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: "creator",
-         required: [true, "creator Id required"]
-     }, */
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "creator",
+        required: [true, "creator Id required"]
+    },
 
     videoCover: {
         type: String,

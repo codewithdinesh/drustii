@@ -17,10 +17,12 @@ const userLogin = require('../controller/user/userLogin');
 
 const creatorLogin = require('../controller/creator/creatorLogin');
 
+const uploadVideo = require('../controller/videos/uploadVideo');
+
 app.get("/", controller.homePage);
 
 
-app.post("/upload", auth, upload.single("file"), controller.uploadPage);
+app.post("/upload", auth, upload.single("file"), uploadVideo);
 
 app.post('/create/user', createUser);
 app.get('/create-user', (req, res) => {

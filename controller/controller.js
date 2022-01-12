@@ -67,6 +67,7 @@ const homePage = (req, res) => {
 
 //upload
 const uploadPage = (req, res) => {
+    console.log(req.user);
     if (!req.id) {
 
         console.log("File not selected");
