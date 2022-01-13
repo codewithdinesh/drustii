@@ -12,7 +12,14 @@ const verifyToken = (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        req.user = decoded;
+        if (decoded.user_id) {
+            req.user = decoded;
+        }
+        if (decoded.creator_id) {
+            req.creator = decoded;
+        }
+
+        /* console.log(decoded) */
         /*  res.status(200).json({ "status": "Verification Success", "code": "200", "ResponseCreated": timestamp, "user": req.user }) */
 
     } catch (err) {

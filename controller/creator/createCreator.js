@@ -80,7 +80,7 @@ const createCreator = async (req, res, next) => {
                             // Create token
                             const token = jwt.sign(
                                 {
-                                    user_id: newCreator._id
+                                    creator_id: newCreator._id
                                 },
                                 process.env.SECRET_KEY,
                                 {

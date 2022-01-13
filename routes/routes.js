@@ -24,6 +24,11 @@ app.get("/", controller.homePage);
 
 app.post("/upload", auth, upload.single("file"), uploadVideo);
 
+app.get('/upload', (req, res) => {
+    res.render('uploadVideo')
+}
+);
+
 app.post('/create/user', createUser);
 app.get('/create-user', (req, res) => {
 
