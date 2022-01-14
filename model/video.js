@@ -5,22 +5,20 @@ const VideoSchema = new mongoose.Schema({
         type: String,
         required: [true, "video Title required"]
     },
-
     description: {
         type: String,
         required: [true, "description required"]
     },
-
     source: {
         type: String,
         required: [true, "source Id required"]
     },
-
-    /*   privacy: {
-          type: Boolean,
-          required: true,
-          default:false
-      }, */
+    
+    privacy: {
+        type: String,
+        enum: ["public", "private", "shareOnly"],
+        required: true
+    },
 
     creator: {
         type: mongoose.Schema.Types.ObjectId,

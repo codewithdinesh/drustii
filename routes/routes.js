@@ -2,15 +2,19 @@ const express = require('express');
 const app = express.Router();
 const Fileupload = require('../controller/FileUpload');
 const upload = Fileupload.upload;
-const controller = require("../controller/controller")
+const controller = require("../controller/controller");
 
-/* User Login and creation */
+/* User operations create, login, delete*/
 const createUser = require("../controller/user/createUser");
 const userLogin = require('../controller/user/userLogin');
+const deleteUser = require("../controller/user/deleteUser");
+
 
 /* Creator Login and creation */
 const createCreator = require('../controller/creator/createCreator');
 const creatorLogin = require('../controller/creator/creatorLogin');
+const deleteCreator = require('../controller/creator/deleteCreator');
+
 
 /* Authentication Middelware */
 const auth = require("../middleware/auth");
@@ -37,12 +41,15 @@ app.get('/create-user', (req, res) => {
     res.render('userRegister')
 })
 
+app.delete('/delete/user', deleteUser);
+
 /* Create Creator */
 app.get('/create/creator', (req, res) => {
     res.render('creatorRegister')
 })
 
 app.post('/create/creator', createCreator);
+app.delete('/creator/delete', deleteCreator);
 
 /* Login User */
 app.get('/login/user', controller.loginPage);
