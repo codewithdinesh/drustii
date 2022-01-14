@@ -38,12 +38,17 @@ const creatorlogin = (req, result, next) => {
                     );
 
                     // save user token
-                    creator.token = token;
+                    creatorModel.findOneAndUpdate({ _id: creator._id }, {
+                        token: token
+                    },
+                        { new: true }
+                    ).exec();
+                    /*  creator.token = token; */
                     let options = {
                         path: "/",
                         sameSite: true,
                         maxAge: 1000 * 60 * 60 * 24, // would expire after 24 hours
-                        httpOnly: true,
+                        httpOnly: true
                     }
 
                     result.cookie('token_id', token, options);

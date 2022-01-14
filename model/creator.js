@@ -25,6 +25,10 @@ const CreatorSchema = new mongoose.Schema({
 		/* Description of creator Dashboard */
 
 	},
+	token: {
+		type: String,
+		required: true
+	},
 
 	avatar: {
 		type: String,
@@ -39,10 +43,12 @@ const CreatorSchema = new mongoose.Schema({
 	videos: [{
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'video'
-
 	}]
 
 });
 
-const Creator = mongoose.model('Creator', CreatorSchema);
+function arrayLimit(val) {
+	return val.length <= 10;
+}
+const Creator = mongoose.model('creator', CreatorSchema);
 module.exports = Creator;
