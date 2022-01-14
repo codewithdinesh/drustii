@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const connConnect = require("../../config/db").conConnect;
+
 const creatorModel = require('../../model/creator');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');

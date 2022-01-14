@@ -1,9 +1,6 @@
 const mongoose = require("mongoose");
-const userModel = require("./User")
 
 const VideoSchema = new mongoose.Schema({
-
-
     title: {
         type: String,
         required: [true, "video Title required"]
