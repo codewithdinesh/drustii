@@ -4,9 +4,7 @@ const Fileupload = require("../FileUpload");
 
 const conCreate = require("../../config/db").conCreate;
 
-
 const connConnect = require("../../config/db").conConnect;
-
 
 const creatorModel = require('../../model/creator');
 
@@ -19,6 +17,8 @@ const emailValidate = require('../emailValidate');
 const usernameValidate = require('../userNameValidate');
 
 const TimeStamp = require('../TimeStamp');
+
+const verifyEmail = require('../emailVerification')
 
 /* Create User */
 const createCreator = async (req, res, next) => {
@@ -54,7 +54,9 @@ const createCreator = async (req, res, next) => {
             } else {
                 if (usernameExists) {
                     res.status(409).send({ "username": username, "Code": 409, "status": "username not available", "ResponseCreated": TimeStamp() });
-                } else
+                } else {
+
+                    // const sendverifyMail = await verifyEmail(req, email);
 
                     /* Encrypting password and storing user data to database*/
                     bcrypt.genSalt(10, function (err, salt) {
@@ -107,8 +109,8 @@ const createCreator = async (req, res, next) => {
                             /*  next(); */
                         });
                     });
+                }
             }
-
 
         } else {
             res.status(400).send(JSON.stringify({ "status": "invalid Email", "email": email, "ResponseCreated": TimeStamp() }));
@@ -117,8 +119,6 @@ const createCreator = async (req, res, next) => {
     catch {
         res.status(404).send({ "status": "Something Error in Server", "ResponseCreated": TimeStamp() });
     }
-
-
 
 
 }

@@ -3,6 +3,7 @@ const app = express.Router();
 const Fileupload = require('../controller/FileUpload');
 const upload = Fileupload.upload;
 const controller = require("../controller/controller");
+const emailVerification = require('../controller/emailVerification');
 
 /* User operations create, login, delete*/
 const createUser = require("../controller/user/createUser");
@@ -24,6 +25,7 @@ const uploadVideo = require('../controller/videos/uploadVideo');
 const getVideos = require('../controller/videos/getVideos');
 const getVideo = require('../controller/videos/getVideo');
 const deleteVideo = require('../controller/videos/deleteVideo');
+const sendOTP = require('../controller/sendOTP');
 
 app.get("/", controller.homePage);
 
@@ -73,4 +75,8 @@ app.delete('/video/delete?:id', auth, deleteVideo);
 /* Modify Video */
 // app.post('/video/modify?:id');
 
+
+/* Email Verification */
+app.post('/user/register', sendOTP);
+app.get('/user/register');
 module.exports = app;

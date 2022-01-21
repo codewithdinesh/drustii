@@ -13,13 +13,24 @@ const VideoSchema = new mongoose.Schema({
         type: String,
         required: [true, "source Id required"]
     },
-    
     privacy: {
-        type: String,
-        enum: ["public", "private", "shareOnly"],
-        required: true
+        "public": {
+            type: Boolean,
+            default: true
+        },
+        "private": {
+            type: Boolean,
+            default: false
+        },
+        "shareOnly": {
+            type: Boolean,
+            default: false,
+            usersID: [{
+                type: String,
+                required: [true, "user email required"]
+            }]
+        }
     },
-
     creator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "creator",
