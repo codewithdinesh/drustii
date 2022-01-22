@@ -18,7 +18,7 @@ const usernameValidate = require('../userNameValidate');
 
 const TimeStamp = require('../TimeStamp');
 
-const verifyEmail = require('../emailVerification')
+const sendConfirmOTP = require('../sendConfirmOTP')
 
 /* Create User */
 const createCreator = async (req, res, next) => {

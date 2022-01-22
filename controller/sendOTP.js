@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const Fileupload = require("./FileUpload");
-
 const conCreate = require("../config/db").conCreate;
 
 const connConnect = require("../config/db").conConnect;
@@ -14,11 +12,9 @@ const jwt = require('jsonwebtoken');
 
 const emailValidate = require('./emailValidate');
 
-const usernameValidate = require('./userNameValidate');
-
 const TimeStamp = require('./TimeStamp');
 
-const sendconfirmOTP = require('./emailVerification')
+const sendconfirmOTP = require('./sendConfirmOTP')
 
 /* Create User */
 const sendOTP = async (req, res, next) => {
@@ -45,7 +41,6 @@ const sendOTP = async (req, res, next) => {
                     res.status(200).send({
                         "message": "OTP send Successfully", "email": email, "ResponseCreatedAt": TimeStamp()
                     })
-
 
                 }
             } else {

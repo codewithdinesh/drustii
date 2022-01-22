@@ -3,7 +3,7 @@ const app = express.Router();
 const Fileupload = require('../controller/FileUpload');
 const upload = Fileupload.upload;
 const controller = require("../controller/controller");
-const emailVerification = require('../controller/emailVerification');
+const emailVerification = require('../controller/sendConfirmOTP');
 
 /* User operations create, login, delete*/
 const createUser = require("../controller/user/createUser");

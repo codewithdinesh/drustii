@@ -9,7 +9,11 @@ const UserOTP = new mongoose.Schema({
         type: String,
         required: true
     },
-    index: {
-        expires: 3000
+    expiresAt: {
+        type: Date,
+        expires: '5m',
+        default: Date.now
     }
 });
+
+module.exports = mongoose.model("userOTP", UserOTP);
