@@ -15,13 +15,18 @@ const emailValidate = require('./emailValidate');
 const TimeStamp = require('./TimeStamp');
 
 const sendconfirmOTP = require('./sendConfirmOTP');
+
 const validateInput = require('../utility/validateInput');
 
-/* Create User */
-const sendOTP = async (req, res, next) => {
+const otpModel = require('../model/verifyOTP');
+
+/* verify user OTP */
+const verifyOTP = async (req, res, next) => {
 
     var email = validateInput(req.body.email);
-    
+
+    let otp = validateInput(req.body.otp);
+
     try {
         if (!email) {
             return res.status(400).send(JSON.stringify({ "status": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
@@ -33,15 +38,31 @@ const sendOTP = async (req, res, next) => {
                 const exists = await creatorModel.exists({ email: email });
 
                 if (exists) {
-
+                    return res.send({ "message": "You are already Verified, Please Login With your creadential", "ResponseCreatedAt": TimeStamp() })
                 }
                 else {
 
-                    sendconfirmOTPemail = sendconfirmOTP(req, email);
+                    otpModel.findOne({ email: email, otp: otp }, (otpError, otpResult) => {
+                        if (otpError) {
+                            return res.send({ "message": "Something Error Found in OTP verification", "ResponseCreatedAt": TimeStamp() })
+                        }
+                        if (otpResult) {
 
-                    res.status(200).send({
-                        "message": "OTP send Successfully", "email": email, "ResponseCreatedAt": TimeStamp()
-                    });
+                            console.log(otpResult);
+
+                            res.status(200).send({
+                                "message": "OTP Verified", "email": email, "ResponseCreatedAt": TimeStamp()
+                            });
+                            // detele OTP from database
+                            otpModel.findOneAndDelete({ email: email }).exec();
+
+
+                        } else {
+                            return res.send({ "message": "Invalid verification request", "ResponseCreatedAt": TimeStamp() })
+                        }
+
+                    })
+
                     // res.redirect('/user/verify');
 
                 }
@@ -57,4 +78,4 @@ const sendOTP = async (req, res, next) => {
 
 }
 
-module.exports = sendOTP;
+module.exports = verifyOTP;

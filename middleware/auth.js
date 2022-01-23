@@ -22,6 +22,7 @@ const verifyToken = (req, res, next) => {
                 }
                 console.log("creator find executing");
                 req.creator = decoded;
+                console.log(req.creator);
             });
         }
 

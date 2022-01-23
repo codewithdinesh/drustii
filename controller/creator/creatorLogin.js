@@ -4,11 +4,12 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const validateEmail = require('../emailValidate');
 const TimeStamp = require('../TimeStamp');
+const validateInput = require('../../utility/validateInput');
 
 const creatorlogin = (req, result, next) => {
 
-    let email = req.body.email;
-    let password = req.body.password;
+    let email = validateInput(req.body.email);
+    let password = validateInput(req.body.password);
 
     if (!(email && password)) {
         result.status(400).send(JSON.stringify({ "message": "error: All the inputs are required", "ResponseCreated": TimeStamp() }));
@@ -42,6 +43,7 @@ const creatorlogin = (req, result, next) => {
                     },
                         { new: true }
                     ).exec();
+
                     /*  creator.token = token; */
                     let options = {
                         path: "/",

@@ -39,17 +39,17 @@ const uploadVideo = (req, res) => {
 
                 if (req.file.mimetype == 'video/mp4' || req.file.mimetype == 'video/x-msvideo' || req.file.mimetype == 'video/ogg' || req.file.mimetype == 'video/webm' || req.file.mimetype == 'video/mov' || req.file.mimetype == 'video/quicktime' || req.file.mimetype == '	video/3gpp' || req.file.mimetype == 'video/x-ms-wmv' || req.file.mimetype == 'application/x-mpegURL' || req.file.mimetype == 'video/avi') {
 
-                   /*  const newvideo = new VideoSchema({
-                        title: videoTitle,
-                        description: videoDescription,
-                        source: videoFileName,
-                        creator: videoCreator
-                    });
-                    newvideo.save();
-
-                    creatorModel.findOneAndUpdate({ _id: videoCreator }).populate('videos').exec((video) => {
-                        console.log(video);
-                    }) */
+                    /*  const newvideo = new VideoSchema({
+                         title: videoTitle,
+                         description: videoDescription,
+                         source: videoFileName,
+                         creator: videoCreator
+                     });
+                     newvideo.save();
+ 
+                     creatorModel.findOneAndUpdate({ _id: videoCreator }).populate('videos').exec((video) => {
+                         console.log(video);
+                     }) */
 
                     VideoSchema.create({
                         title: videoTitle,

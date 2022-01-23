@@ -26,6 +26,7 @@ const getVideos = require('../controller/videos/getVideos');
 const getVideo = require('../controller/videos/getVideo');
 const deleteVideo = require('../controller/videos/deleteVideo');
 const sendOTP = require('../controller/sendOTP');
+const verifyOTP = require('../controller/verifyOTP');
 
 app.get("/", controller.homePage);
 
@@ -75,8 +76,10 @@ app.delete('/video/delete?:id', auth, deleteVideo);
 /* Modify Video */
 // app.post('/video/modify?:id');
 
-
 /* Email Verification */
 app.post('/user/register', sendOTP);
 app.get('/user/register');
+
+app.post("/user/verification", verifyOTP)
+
 module.exports = app;

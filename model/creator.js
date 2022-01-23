@@ -47,8 +47,5 @@ const CreatorSchema = new mongoose.Schema({
 
 });
 
-function arrayLimit(val) {
-	return val.length <= 10;
-}
 const Creator = mongoose.model('creator', CreatorSchema);
 module.exports = Creator;
