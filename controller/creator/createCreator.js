@@ -22,12 +22,19 @@ const sendConfirmOTP = require('../sendConfirmOTP')
 
 /* Create User */
 const createCreator = async (req, res, next) => {
+    
     var email = req.body.email;
+
     var pass = req.body.password;
+    
     var retype_pass = req.body.retype_pass;
+
     var username = req.body.username;
+
     var avatar = req.body.avatar;
+
     var cover = req.body.cover;
+
     var description = req.body.description;
 
     try {

@@ -28,8 +28,9 @@ const verifyOTP = async (req, res, next) => {
     let otp = validateInput(req.body.otp);
 
     try {
+
         if (!email) {
-            return res.status(400).send(JSON.stringify({ "status": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
+            return res.status(400).send(JSON.stringify({ "message": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
         }
 
         else {

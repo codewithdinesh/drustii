@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const VideoSchema = new mongoose.Schema({
+    videoid: {
+        type: String,
+        required: true
+    },
     title: {
         type: String,
         required: [true, "video Title required"]
@@ -12,6 +16,10 @@ const VideoSchema = new mongoose.Schema({
     source: {
         type: String,
         required: [true, "source Id required"]
+    },
+    length: {
+        type: Number,
+        required: [true, "Lenght of video Required"]
     },
     privacy: {
         "public": {

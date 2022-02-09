@@ -27,10 +27,12 @@ const uploadVideo = (req, res) => {
     } else {
 
         if (req.creator) {
+            const videoID = req.file.id;
             const videoFileName = req.file.filename;
             const videoTitle = req.body.title;
             const videoDescription = req.body.description;
             const videoCreator = req.creator.creator_id;
+            const videoLength=req.file.size;
 
             if (!(videoFileName && videoTitle && videoDescription && videoCreator)) {
                 return res.status(404).send({ "status": "all the inputs are required", "ResponseCreated": TimeStamp() });
@@ -52,9 +54,11 @@ const uploadVideo = (req, res) => {
                      }) */
 
                     VideoSchema.create({
+                        videoid: videoID,
                         title: videoTitle,
                         description: videoDescription,
                         source: videoFileName,
+                        length:videoLength,
                         creator: videoCreator
                     }).then((dbVideo) => {
                         console.log(dbVideo._id);
@@ -64,6 +68,7 @@ const uploadVideo = (req, res) => {
                         },
                             { new: true }
                         ).exec();
+
                         return res.status(200).send({ "status": "VIdeo Uploaded Successfully", "ResponseCreated": TimeStamp(), "videoID": dbVideo._id, "creatorID": videoCreator });
                     }).finally(err => {
                         if (err) {

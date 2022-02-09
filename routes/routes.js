@@ -71,7 +71,7 @@ app.get("/videos", getVideos);
 app.get("/video?:id", getVideo);
 
 /* Delete Video */
-app.delete('/video/delete?:id', auth, deleteVideo);
+app.post('/video/delete?:id', auth, deleteVideo);
 
 /* Modify Video */
 // app.post('/video/modify?:id');

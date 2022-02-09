@@ -3,49 +3,49 @@ const path = require("path");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const { GridFsStorage } = require("multer-gridfs-storage");
-const config = require('../config/config');
-const conCreate=require("../config/db").conCreate;
+const config = require("../config/config");
+const conCreate = require("../config/db").conCreate;
+const creatorModel = require('../model/creator');
+const TimeStamp = require('./TimeStamp');
 
 // DB
 const mongoURI = config.url;
 
-
 // init gfs
 let gfs;
 conCreate.once("open", () => {
-    // init stream
-    gfs = new mongoose.mongo.GridFSBucket(conCreate.db, {
-        bucketName: config.model
-    });
+  // init stream
+  gfs = new mongoose.mongo.GridFSBucket(conCreate.db, {
+    bucketName: config.model,
+  });
 });
 
 // Storage
 const storage = new GridFsStorage({
-    url: mongoURI,
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(16, (err, buf) => {
-                if (err) {
-                    return reject(err);
-                }
-                const filename = buf.toString("hex") + path.extname(file.originalname);
-                const fileInfo = {
-                    filename: filename,
-                    bucketName: config.model
-                };
-                resolve(fileInfo);
-            });
-        });
-    }
+  url: mongoURI,
+  file: (req, file) => {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(16, (err, buf) => {
+        if (err) {
+          return reject(err);
+        }
+        const filename = buf.toString("hex") + path.extname(file.originalname);
+        const fileInfo = {
+          filename: filename,
+          creatorID:" req.creator.creator_id",
+          bucketName: config.model,
+        };
+        resolve(fileInfo);
+      });
+    });
+  },
 });
 
 const upload = multer({
-    storage
+  storage,
 });
 
 //exporting upload and gfs
 module.exports = {
-    upload
-}
-
-
+  upload,
+};
