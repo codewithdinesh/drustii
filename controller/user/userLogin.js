@@ -15,6 +15,7 @@ const userlogin = (req, result, next) => {
         result.status(400).send(JSON.stringify({ "message": "error: All the inputs are required", "ResponseCreated": TimeStamp() }));
 
     } else {
+
         if (validateEmail(email) == true) {
             userModel.findOne({ email: email }, function (err, user) {
                 if (err) return err;
@@ -28,6 +29,7 @@ const userlogin = (req, result, next) => {
 
                     // Create token
                     const token = jwt.sign(
+
                         {
                             user_id: user._id
                         },
@@ -38,7 +40,7 @@ const userlogin = (req, result, next) => {
                     );
 
                     // save user token
-                    userModel.findOneAndUpdate({ _id: creator._id }, {
+                    userModel.findOneAndUpdate({ _id: user._id }, {
                         token: token
                     },
                         { new: true }
@@ -51,7 +53,7 @@ const userlogin = (req, result, next) => {
                     }
 
                     result.cookie('token_id', token, options);
-                    result.status(200).send({ "status": "login success", "login_token": token, "email": email, "ResponseCreated": TimeStamp() });
+                    result.status(200).send({ "status": "login success", "login_token": token, "email": email, "userId": user._id, "ResponseCreated": TimeStamp() });
                     /* 
                     result.redirect('/');
                     */

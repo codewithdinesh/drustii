@@ -4,7 +4,7 @@ const conCreate = require("../config/db").conCreate;
 
 const connConnect = require("../config/db").conConnect;
 
-const creatorModel = require('../model/creator');
+const userModel = require('../model/User');
 
 const bcrypt = require("bcrypt");
 
@@ -15,13 +15,15 @@ const emailValidate = require('./emailValidate');
 const TimeStamp = require('./TimeStamp');
 
 const sendconfirmOTP = require('./sendConfirmOTP');
+
 const validateInput = require('../utility/validateInput');
 
 /* Create User */
 const sendOTP = async (req, res, next) => {
 
-    var email = validateInput(req.body.email);
-    
+    var email = validateInput(req.headers.email || req.body.email);
+    console.log(email);
+
     try {
         if (!email) {
             return res.status(400).send(JSON.stringify({ "status": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
@@ -30,9 +32,10 @@ const sendOTP = async (req, res, next) => {
         else {
             if (emailValidate(email) == true) {
 
-                const exists = await creatorModel.exists({ email: email });
+                const exists = await userModel.exists({ email: email });
 
                 if (exists) {
+                    res.send({ "message": "already verified", "status": 201 });
 
                 }
                 else {
@@ -40,7 +43,7 @@ const sendOTP = async (req, res, next) => {
                     sendconfirmOTPemail = sendconfirmOTP(req, email);
 
                     res.status(200).send({
-                        "message": "OTP send Successfully", "email": email, "ResponseCreatedAt": TimeStamp()
+                        "message": "OTP send Successfully", "email": email, "status": 200, "ResponseCreatedAt": TimeStamp()
                     });
                     // res.redirect('/user/verify');
 
