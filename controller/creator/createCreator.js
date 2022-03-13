@@ -64,9 +64,10 @@ const createCreator = async (req, res) => {
                     userModel.findOneAndUpdate({ _id: user_id }, {
                         creator: newCreator._id
                     }, { new: true }
-                    );
+                    ).exec();
 
                     return res.status(200).send({ "message": "creator Enabled" })
+
                 } else {
 
                     return res.status(403).send({ "message": "you have a already creator account" });

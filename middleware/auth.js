@@ -38,15 +38,15 @@ const verifyToken = (req, res, next) => {
           });
         } else {
           req.user = decoded;
-
           if (result.creator) {
             creatorSchema.findOne({ _id: result.creator }, (creatorErr, creatorResult) => {
 
               if (creatorErr)
                 return res.status(404).send({ "message": "Creator Error" });
               if (creatorResult) {
+
                 req.creator = creatorResult._id;
-                console.log(creatorResult._id)
+
                 return next()
               }
             })
