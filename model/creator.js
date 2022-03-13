@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
 const CreatorSchema = new mongoose.Schema({
-
+	userID: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User"
+	},
 	description: {
 		type: String,
 		required: [true, "creator description required"],

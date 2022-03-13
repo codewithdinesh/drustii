@@ -17,7 +17,12 @@ const config = require("../../config/config");
 /* Create User */
 const createCreator = async (req, res) => {
 
-    var cover = req.body.cover;
+    var cover;
+    if (req.file) {
+
+        cover = req.file.id;
+
+    }
 
     var description = req.body.description;
 
@@ -33,6 +38,7 @@ const createCreator = async (req, res) => {
             }
 
             const exists = await userModel.exists({ _id: user_id });
+            const creatorExists = await creatorModel.exists({ userID: user_id })
 
             if (!exists) {
 
@@ -40,20 +46,33 @@ const createCreator = async (req, res) => {
 
             } else {
 
-                const newCreator = new creatorModel({
-                    description: description,
-                    cover: cover
-                });
+                // if creator not already exists
+                if (!creatorExists) {
 
-                newCreator.save();
+                    const newCreator = new creatorModel({
+                        userID: user_id,
+                        description: description,
+                    });
 
-                //update creator details or insert details in user model
-                userModel.findOneAndUpdate({ _id: user_id }, {
-                    creator: newCreator._id
-                }, { new: true }
-                );
+                    if (cover) {
+                        newCreator.cover = cover;
+                    }
 
-                return res.status(200).send({ "message": "creator Enabled" })
+                    newCreator.save();
+
+                    //update creator details or insert details in user model
+                    userModel.findOneAndUpdate({ _id: user_id }, {
+                        creator: newCreator._id
+                    }, { new: true }
+                    );
+
+                    return res.status(200).send({ "message": "creator Enabled" })
+                } else {
+
+                    return res.status(403).send({ "message": "you have a already creator account" });
+
+                }
+
 
             }
 

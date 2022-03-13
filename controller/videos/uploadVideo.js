@@ -19,82 +19,89 @@ conCreate.once("open", () => {
 const uploadVideo = (req, res) => {
 
     if (!req.file) {
-        console.log("File not selected");
         return res
             .status(404)
             .send({ status: "File Not selected", ResponseCreated: TimeStamp() });
         /* res.redirect("/"); */
     } else {
         if (req.user) {
-            const videoID = req.file.id;
-            const videoFileName = req.file.filename;
-            const videoTitle = req.body.title;
-            const videoDescription = req.body.description;
-            const videoCreator = req.user.user_id;
-            const videoLength = req.file.size;
+            if (req.creator) {
 
-            if (!(videoFileName && videoTitle && videoDescription && videoCreator)) {
+                const videoID = req.file.id;
+                const videoFileName = req.file.filename;
+                const videoTitle = req.body.videoTitle;
+                const videoDescription = req.body.videoDescription;
+                const videoCreator = req.user.user_id;
+                const videoLength = req.file.size;
+                const creatorID = req.creator; // creator schema ID
 
-                return res.status(404).send({
-                    "message": "all the inputs are required",
-                    ResponseCreated: TimeStamp(),
-                });
+                if (!(videoFileName && videoTitle && videoDescription && videoCreator)) {
 
-            } else {
-                if (
-                    req.file.mimetype == "video/mp4" || req.file.mimetype == "video/x-msvideo" || req.file.mimetype == "video/ogg" ||
-                    req.file.mimetype == "video/webm" || req.file.mimetype == "video/mov" || req.file.mimetype == "video/quicktime" ||
-                    req.file.mimetype == "	video/3gpp" || req.file.mimetype == "video/x-ms-wmv" || req.file.mimetype == "application/x-mpegURL" ||
-                    req.file.mimetype == "video/avi"
-                ) {
-
-                    VideoSchema.create({
-                        videoid: videoID,
-                        title: videoTitle,
-                        description: videoDescription,
-                        source: videoFileName,
-                        length: videoLength,
-                        creator: videoCreator,
-                    })
-                        .then((dbVideo) => {
-                            console.log(dbVideo._id);
-                            console.log(videoCreator);
-
-                            creatorModel
-                                .findOneAndUpdate(
-                                    { _id: videoCreator },
-                                    {
-                                        $push: { videos: dbVideo._id },
-                                    },
-                                    { new: true }
-                                ).exec();
-
-                            return res.status(200).send({
-                                status: "Video Uploaded Successfully",
-                                ResponseCreated: TimeStamp(),
-                                videoID: dbVideo._id,
-                                creatorID: videoCreator,
-                            });
-                        }).finally((err) => {
-
-                            if (err) {
-                                console.log("Error " + err);
-                                return res
-                                    .status(404).json({ message: "Something Error Happpened" });
-                            }
-                        });
+                    return res.status(404).send({
+                        "message": "all the inputs are required",
+                        ResponseCreated: TimeStamp(),
+                    });
 
                 } else {
-                    return res
-                        .status(404).send({
-                            "message": "Select proper Video Type: mp4, avi, ogg, webm, wvm, m3u8, mov", ResponseCreated: TimeStamp(),
-                        });
+                    if (
+                        req.file.mimetype == "video/mp4" || req.file.mimetype == "video/x-msvideo" || req.file.mimetype == "video/ogg" ||
+                        req.file.mimetype == "video/webm" || req.file.mimetype == "video/mov" || req.file.mimetype == "video/quicktime" ||
+                        req.file.mimetype == "	video/3gpp" || req.file.mimetype == "video/x-ms-wmv" || req.file.mimetype == "application/x-mpegURL" ||
+                        req.file.mimetype == "video/avi"
+                    ) {
+
+                        VideoSchema.create({
+                            videoid: videoID,
+                            title: videoTitle,
+                            description: videoDescription,
+                            source: videoFileName,
+                            length: videoLength,
+                            creator: videoCreator
+                        })
+                            .then((dbVideo) => {
+
+                                creatorModel
+                                    .findOneAndUpdate(
+                                        { _id: creatorID },
+                                        {
+                                            $push: { videos: dbVideo._id },
+                                        },
+                                        { new: true }
+                                    ).exec();
+
+                                return res.status(200).send({
+                                    status: "Video Uploaded Successfully",
+                                    ResponseCreated: TimeStamp(),
+                                    videoID: dbVideo._id,
+                                    creatorID: videoCreator,
+                                });
+                            }).finally((err) => {
+
+                                if (err) {
+                                    console.log("Error " + err);
+                                    return res
+                                        .status(404).json({ message: "Something Error Happpened" });
+                                }
+                            });
+
+                    } else {
+                        return res
+                            .status(404).send({
+                                "message": "Select proper Video Type: mp4, avi, ogg, webm, wvm, m3u8, mov", ResponseCreated: TimeStamp(),
+                            });
+                    }
                 }
+            } else {
+                return res
+                    .status(404).send({
+                        message: "only creator can upload the videos, Please Enable Creator Account",
+                        ResponseCreated: TimeStamp(),
+                    });
             }
         } else {
             return res
                 .status(404).send({
-                    message: "only creator can upload the videos",
+                    message: "Please Login to upload videos",
                     ResponseCreated: TimeStamp(),
                 });
         }

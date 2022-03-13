@@ -11,38 +11,74 @@ const TimeStamp = require('./TimeStamp');
 // DB
 const mongoURI = config.url;
 
-// init gfs
+
 let gfs;
+
 conCreate.once("open", () => {
+
   // init stream
   gfs = new mongoose.mongo.GridFSBucket(conCreate.db, {
     bucketName: config.model,
   });
+
 });
+
 
 // Storage
 const storage = new GridFsStorage({
   url: mongoURI,
   file: (req, file) => {
     return new Promise((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) {
-          return reject(err);
+
+      if (file) {
+        const match = ["video/mp4", "video/x-msvideo", "video/ogg", "video/webm", "video/mov", "video/quicktime", "	video/3gpp", "video/x-ms-wmv", "application/x-mpegURL", "video/avi"];
+        console.log()
+        const videoTitle = req.body.videoTitle;
+        const videoDescription = req.body.videoDescription;
+        const creatorID = req.creator;
+        console.log(creatorID)
+        console.log(videoDescription)
+        if (!videoTitle) {
+          return reject("video title required");
         }
-        const filename = buf.toString("hex") + path.extname(file.originalname);
-        const fileInfo = {
-          filename: filename,
-          creatorID:" req.creator.creator_id",
-          bucketName: config.model,
-        };
-        resolve(fileInfo);
-      });
+        if (!videoDescription) {
+          return reject("video description required");
+        }
+        if (!creatorID) {
+          return reject("Please Enable creator Account.")
+        }
+
+        if (match.indexOf(file.mimetype) != -1) {
+
+          //True part
+          crypto.randomBytes(16, (err, buf) => {
+            if (err) {
+              return reject(err);
+            }
+            const filename = buf.toString("hex") + path.extname(file.originalname);
+            const fileInfo = {
+              filename: filename,
+              bucketName: config.model,
+            };
+
+            resolve(fileInfo);
+
+          });
+
+        } else {
+          reject("Please Select video, Video File is required")
+        }
+      } else {
+        reject("Video File is required")
+      }
     });
+
   },
 });
 
 const upload = multer({
   storage,
+  limits: 10000
 });
 
 //exporting upload and gfs

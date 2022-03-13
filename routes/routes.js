@@ -29,14 +29,18 @@ const verifyOTP = require("../controller/verifyOTP");
 // check username
 const checkUsername = require('../controller/user/checkUsername');
 
+// store avatar
+const storeAvatar = require('../controller/user/storeAvatar').upload;
 
+//store cover images of creator
+const storeCover=require("../controller/creator/storeCover").upload;
 
 
 app.get("/", controller.homePage);
 
 
 /* Create User */
-app.post("/create/user", createUser);
+app.post("/create/user", storeAvatar.single('userAvatar'), createUser);
 
 app.get("/create-user", (req, res) => {
     res.render("userRegister");
@@ -61,7 +65,7 @@ app.get("/create/creator", (req, res) => {
     res.render("creatorRegister");
 });
 
-app.post("/create/creator",auth, createCreator);
+app.post("/create/creator", auth,storeCover.single('coverImg'), createCreator);
 
 
 /* Login User */
@@ -70,14 +74,14 @@ app.post("/login/user", userLogin);
 
 
 /* Public  user profile */
-app.get("/u/:id",userProfile);
+app.get("/u/:id", userProfile);
 
 /* Upload video */
 app.get("/upload", (req, res) => {
     res.render("uploadVideo");
 });
 
-app.post("/upload", auth, upload.single("file"), uploadVideo);
+app.post("/upload", auth, upload.single("videoSource"), uploadVideo);
 
 
 /* Get All Videos */

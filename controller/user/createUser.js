@@ -24,14 +24,16 @@ const createUser = async (req, res, next) => {
     var retype_pass = req.body.retype_pass;
     var username = req.body.username;
     var name = req.body.name;
-    var avatar = req.body.avatar;
+    var avatar;
+    if (req.file) {
+        avatar = req.file.id;
+    }
+
     var dob = req.body.dob;
     var gender = req.body.gender;
 
     const currentDate = new Date().getTime();
     const timestamp = new Date(currentDate);
-
-    console.log(req.body)
 
     /* Check email enterred or not */
     if (!email) {

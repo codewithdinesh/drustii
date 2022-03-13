@@ -22,22 +22,7 @@ const VideoSchema = new mongoose.Schema({
         required: [true, "Lenght of video Required"]
     },
     privacy: {
-        "public": {
-            type: Boolean,
-            default: true
-        },
-        "private": {
-            type: Boolean,
-            default: false
-        },
-        "shareOnly": {
-            type: Boolean,
-            default: false,
-            usersID: [{
-                type: String,
-                required: [true, "user email required"]
-            }]
-        }
+
     },
     creator: {
         type: mongoose.Schema.Types.ObjectId,
