@@ -33,7 +33,7 @@ const checkUsername = require('../controller/user/checkUsername');
 const storeAvatar = require('../controller/user/storeAvatar').upload;
 
 //store cover images of creator
-const storeCover=require("../controller/creator/storeCover").upload;
+const storeCover = require("../controller/creator/storeCover").upload;
 
 
 app.get("/", controller.homePage);
@@ -42,15 +42,15 @@ app.get("/", controller.homePage);
 /* Create User */
 app.post("/create/user", storeAvatar.single('userAvatar'), createUser);
 
-app.get("/create-user", (req, res) => {
+app.get("/create/user", (req, res) => {
     res.render("userRegister");
 });
 
 /* Email Verification */
-app.post("/user/register", sendOTP);
-app.get("/user/register");
+app.post("/user/verification", sendOTP);
+app.get("/user/verification");
 
-app.post("/user/verification", verifyOTP);
+app.post("/user/verify", verifyOTP);
 
 // check username
 app.post('/check/username', checkUsername);
@@ -65,7 +65,7 @@ app.get("/create/creator", (req, res) => {
     res.render("creatorRegister");
 });
 
-app.post("/create/creator", auth,storeCover.single('coverImg'), createCreator);
+app.post("/create/creator", auth, storeCover.single('coverImg'), createCreator);
 
 
 /* Login User */
