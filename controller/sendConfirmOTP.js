@@ -29,7 +29,7 @@ const sendconfirmOTP = (req, reqEmail) => {
 
     transport.sendMail(message, async (error, info) => {
         if (error) {
-            return console.log(error);
+            return res.status(400).send({ "message": "Something Error in internal server" })
         }
         const exists = await verifyOTP.exists({ email: reqEmail });
 
@@ -40,14 +40,12 @@ const sendconfirmOTP = (req, reqEmail) => {
             });
 
             userOtp.save();
-            
+
         } else {
             verifyOTP.findOneAndUpdate({ email: reqEmail }, {
                 otp: OTP
             }).exec();
         }
-
-        console.log('Message sent: %s', info.messageId);
 
     });
 }

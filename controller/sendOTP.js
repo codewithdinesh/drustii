@@ -26,7 +26,7 @@ const sendOTP = async (req, res, next) => {
 
     try {
         if (!email) {
-            return res.status(400).send(JSON.stringify({ "status": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
+            return res.status(400).send(JSON.stringify({ "message": "error: Email is required", "ResponseCreatedAt": TimeStamp() }));
         }
 
         else {
@@ -35,6 +35,7 @@ const sendOTP = async (req, res, next) => {
                 const exists = await userModel.exists({ email: email });
 
                 if (exists) {
+                    
                     res.send({ "message": "already verified", "status": 201 });
 
                 }

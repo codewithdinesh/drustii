@@ -19,16 +19,14 @@ const sendconfirmOTP = require('./sendConfirmOTP');
 const validateInput = require('../utility/validateInput');
 
 const otpModel = require('../model/verifyOTP');
+const verifiedUsers = require('../model/verifiedUsers');
 
 /* verify user OTP */
 const verifyOTP = async (req, res, next) => {
 
     var email = validateInput(req.headers.email || req.body.email);
-    console.log(email);
 
     let otp = validateInput(req.headers.otp || req.body.otp);
-    console.log(otp);
-    console.log(req.headers)
 
     try {
 
@@ -40,6 +38,8 @@ const verifyOTP = async (req, res, next) => {
             if (emailValidate(email) == true) {
 
                 const exists = await userModel.exists({ email: email });
+                const verifiedUserExists = await verifiedUsers.exists({ email: email });
+
 
                 if (exists) {
                     return res.send({ "message": "You are already Verified, Please Login With your creadential", "ResponseCreatedAt": TimeStamp() })
@@ -52,7 +52,20 @@ const verifyOTP = async (req, res, next) => {
                         }
                         if (otpResult) {
 
-                            console.log(otpResult);
+                            if (!verifiedUserExists) {
+
+                                const verifiedUser = new verifiedUsers({
+                                    email: email
+                                });
+
+                                verifiedUser.save();
+                            } else {
+
+                                verifiedUsers.findOne({ email: email }, {
+                                    email: email
+                                }).exec();
+
+                            }
 
                             res.status(200).send({
 
