@@ -15,6 +15,7 @@ const jwt = require('jsonwebtoken');
 const emailValidate = require('../emailValidate');
 
 const userNamevalidate = require("../userNameValidate");
+const verifiedUsers = require('../../model/verifiedUsers');
 
 /* Create Normal User */
 const createUser = async (req, res, next) => {
@@ -79,89 +80,98 @@ const createUser = async (req, res, next) => {
         }
 
         const exists = await userModel.exists({ email: email });
+        const verfiedUser = await verifiedUsers.exists({ email: email })
 
-        /*   check username format */
+        if (verfiedUser) {
 
-        if (userNamevalidate(username) == true) {
+            /*   check username format */
+
+            if (userNamevalidate(username) == true) {
 
 
-            const userNameExists = await userModel.exists({ username: username });
+                const userNameExists = await userModel.exists({ username: username });
 
-            if (exists) {
+                if (exists) {
 
-                return res.status(409).send({ "email": email, "status": 409, "message": "already having account", "ResponseCreated": timestamp });
+                    return res.status(409).send({ "email": email, "status": 409, "message": "already having account", "ResponseCreated": timestamp });
 
-                // res.redirect('/login');
+                    // res.redirect('/login');
 
-            } else {
+                } else {
 
-                if (!userNameExists) {
 
-                    /* Encrypting password and storing user data to database*/
 
-                    bcrypt.genSalt(10, function (err, salt) {
+                    if (!userNameExists) {
 
-                        if (err) return next(err);
-                        bcrypt.hash(pass, salt, function (err, hash) {
+                        /* Encrypting password and storing user data to database*/
+
+                        bcrypt.genSalt(10, function (err, salt) {
 
                             if (err) return next(err);
+                            bcrypt.hash(pass, salt, function (err, hash) {
 
-                            const newUser = new userModel({
-                                email: email,
-                                password: hash,
-                                username: username,
-                                name: name,
-                                dob: dob
-                            });
+                                if (err) return next(err);
 
-                            if (avatar) {
-                                newUser.avatar = avatar;
-                            }
-                            if (gender) {
-                                newUser.gender = gender;
-                            }
+                                const newUser = new userModel({
+                                    email: email,
+                                    password: hash,
+                                    username: username,
+                                    name: name,
+                                    dob: dob
+                                });
 
-                            /* Create token */
-                            const token = jwt.sign(
-                                {
-                                    user_id: newUser._id
-                                },
-                                process.env.SECRET_KEY,
-                                {
-                                    expiresIn: Math.floor(Date.now() / 1000) + (60 * 60)
-
+                                if (avatar) {
+                                    newUser.avatar = avatar;
                                 }
-                            );
+                                if (gender) {
+                                    newUser.gender = gender;
+                                }
 
-                            /* save user token */
-                            newUser.token = token;
-                            newUser.save();
+                                /* Create token */
+                                const token = jwt.sign(
+                                    {
+                                        user_id: newUser._id
+                                    },
+                                    process.env.SECRET_KEY,
+                                    {
+                                        expiresIn: Math.floor(Date.now() / 1000) + (60 * 60)
 
-                            let options = {
-                                path: "/",
-                                sameSite: true,
-                                maxAge: 1000 * 60 * 60 * 24, // would expire after 24 hours
-                                httpOnly: true,
-                            }
+                                    }
+                                );
 
-                            res.cookie('token_id', token, options);
-                            return res.status(200).send({ "message": "account created successfully", "status": 200, "login_token": token, "email": email, "ResponseCreated": timestamp });
+                                /* save user token */
+                                newUser.token = token;
+                                newUser.save();
 
-                            // return res.redirect('/login');
-                            /*  next(); */
+                                let options = {
+                                    path: "/",
+                                    sameSite: true,
+                                    maxAge: 1000 * 60 * 60 * 24, // would expire after 24 hours
+                                    httpOnly: true,
+                                }
+
+                                res.cookie('token_id', token, options);
+                                return res.status(200).send({ "message": "account created successfully", "status": 200, "login_token": token, "email": email, "ResponseCreated": timestamp });
+
+                                // return res.redirect('/login');
+                                /*  next(); */
+                            });
                         });
-                    });
-                }
+                    }
 
-                else {
+                    else {
 
-                    return res.status(400).send(JSON.stringify({ "message": "username not available", "status": 400, "ResponseCreated": timestamp }));
+                        return res.status(400).send(JSON.stringify({ "message": "username not available", "status": 400, "ResponseCreated": timestamp }));
 
+                    }
                 }
             }
-        }
-        else {
-            return res.status(400).send(JSON.stringify({ "message": "username is invalid", "status": 400, "ResponseCreated": timestamp }));
+            else {
+                return res.status(400).send(JSON.stringify({ "message": "username is invalid", "status": 400, "ResponseCreated": timestamp }));
+            }
+        } else {
+            return res.status(400).send(JSON.stringify({ "message": "Please verify your Email to create account", "status": 400, "ResponseCreated": timestamp }));
+
         }
     }
 
