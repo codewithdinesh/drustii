@@ -31,14 +31,15 @@ const uploadVideo = (req, res) => {
                 const videoFileName = req.file.filename;
                 const videoTitle = req.body.videoTitle;
                 const videoDescription = req.body.videoDescription;
-                const videoCreator = req.user.user_id;
+                const videoCreator = req.user;
                 const videoLength = req.file.size;
                 const creatorID = req.creator; // creator schema ID
 
+               
                 if (!(videoFileName && videoTitle && videoDescription && videoCreator)) {
 
                     return res.status(404).send({
-                        "message": "all the inputs are required",
+                        "message": "video Title, video Description are Required",
                         ResponseCreated: TimeStamp(),
                     });
 
@@ -47,7 +48,7 @@ const uploadVideo = (req, res) => {
                         req.file.mimetype == "video/mp4" || req.file.mimetype == "video/x-msvideo" || req.file.mimetype == "video/ogg" ||
                         req.file.mimetype == "video/webm" || req.file.mimetype == "video/mov" || req.file.mimetype == "video/quicktime" ||
                         req.file.mimetype == "	video/3gpp" || req.file.mimetype == "video/x-ms-wmv" || req.file.mimetype == "application/x-mpegURL" ||
-                        req.file.mimetype == "video/avi"
+                        req.file.mimetype == "video/avi" || req.file.mimetype == "video/x-matroska"
                     ) {
 
                         VideoSchema.create({
