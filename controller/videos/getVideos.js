@@ -21,7 +21,7 @@ const getVideos = (req, res) => {
                 err: "no files exist"
             });
         }
-        console.log(JSON.stringify(files, null, "  "));
+       // console.log(JSON.stringify(files, null, "  "));
         res.send(JSON.stringify(files, null, 1))
     });
 }

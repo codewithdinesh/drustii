@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Fileupload = require("../FileUpload");
-
 const VideoSchema = require("../../model/video");
 const TimeStamp = require("../TimeStamp");
 const config = require("../../config/config");
@@ -11,64 +10,87 @@ const Creator = require("../../model/creator");
 let gfs;
 
 conCreate.once("open", () => {
-  // init stream
+
   gfs = new mongoose.mongo.GridFSBucket(conCreate.db, {
     bucketName: config.model,
   });
 });
 
 const deleteVideo = (req, res) => {
-  // let creator_id = req.creator.creator_id;
-  if (!req) {
-    res.json({ message: "video id not mentioned" });
-  } else {
-    VideoSchema.findOneAndDelete(
-      {
-        _id: req.query.id,
-      },
-      (err, files) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({
+
+  if (req.creator) {
+
+    if (!req) {
+
+      return res.status(404).json({ message: "video not found" });
+
+    } else {
+
+      //Deleting from videos schema
+      VideoSchema.findOneAndDelete(
+        {
+          _id: req.query.id, creator: req.user
+        }, (err, files) => {
+
+          if (err) {
+            return res.status(500).json({
               status: "something error while feching video",
               code: 500,
               ResponseCreated: TimeStamp(),
             });
-        }
+          }
 
-        if (!files) {
-          return res
-            .status(404)
-            .json({
-              status: "file not found",
+          if (!files) {
+            return res.status(404).json({
+              status: "Video Not Found",
               code: 404,
               ResponseCreated: TimeStamp(),
             });
-        }
-        if (files) {
-          Creator.updateOne(
-            { _id: files.creator },
-            { $pull: { videos: req.query.id } }
-          )
-            .exec()
-            .catch(console.log("Ok deleted"));
-          gfs.remove({ _id: files.videoid }, function (err) {
-            if (err) return handleError(err);
-            console.log("success");
-          });
+          }
 
-          return res
-            .status(200)
-            .send({
+
+          if (files) {
+
+            // Deleting video from creator videos array
+            Creator.updateOne({ _id: req.creator },
+              {
+                $pull: {
+                  videos: req.query.id
+                }
+              }).exec();
+
+            // Deleting video Files and Chunks
+            gfs.delete(new mongoose.Types.ObjectId(files.videoid),
+              (err, data) => {
+                if (err) {
+                  return res.status(404).json({
+                    status: "Video Not Found",
+                    code: 404,
+                    ResponseCreated: TimeStamp(),
+                  });
+                }
+                if (data) {
+                  console.log(data)
+                }
+              });
+
+            return res.status(200).send({
               message: "video successfully deleted",
               code: 200,
               ResponseCreated: TimeStamp(),
             });
+
+          }
+
         }
-      }
-    );
+
+      );
+
+    }
+  } else {
+    res.status(404).send({ "message": "Please Login to Delete videos", ResponseCreated: TimeStamp() })
   }
+
 };
 
 module.exports = deleteVideo;

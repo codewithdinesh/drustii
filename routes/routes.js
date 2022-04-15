@@ -20,6 +20,7 @@ const auth = require("../middleware/auth");
 
 /* Videos oprations */
 const uploadVideo = require("../controller/videos/uploadVideo");
+const hostVideo=require("../controller/videos/videoHost")
 const getVideos = require("../controller/videos/getVideos");
 const getVideo = require("../controller/videos/getVideo");
 const deleteVideo = require("../controller/videos/deleteVideo");
@@ -90,6 +91,9 @@ app.get("/videos", getVideos);
 
 /* Get Specific Video */
 app.get("/video?:id", getVideo);
+
+/* stream video */
+app.get("/v/:id", hostVideo);
 
 
 /* Delete Video */

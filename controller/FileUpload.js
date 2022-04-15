@@ -31,13 +31,12 @@ const storage = new GridFsStorage({
     return new Promise((resolve, reject) => {
 
       if (file) {
-        const match = ["video/mp4", "video/x-msvideo", "video/ogg", "video/webm", "video/mov", "video/quicktime", "	video/3gpp", "video/x-ms-wmv", "application/x-mpegURL", "video/avi"];
-        console.log()
+        const match = ["video/mp4", "video/x-msvideo", "video/x-matroska", "video/ogg", "video/webm", "video/mov", "video/quicktime", "	video/3gpp", "video/x-ms-wmv", "application/x-mpegURL", "video/avi"];
+ 
         const videoTitle = req.body.videoTitle;
         const videoDescription = req.body.videoDescription;
         const creatorID = req.creator;
-        console.log(creatorID)
-        console.log(videoDescription)
+     
         if (!videoTitle) {
           return reject("video title required");
         }

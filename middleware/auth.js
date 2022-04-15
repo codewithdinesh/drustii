@@ -37,7 +37,7 @@ const verifyToken = (req, res, next) => {
             ResponseCreated: TimeStamp(),
           });
         } else {
-          req.user = decoded;
+          req.user = decoded.user_id;
           if (result.creator) {
             creatorSchema.findOne({ _id: result.creator }, (creatorErr, creatorResult) => {
 

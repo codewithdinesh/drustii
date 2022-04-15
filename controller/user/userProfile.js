@@ -6,12 +6,12 @@ const findProfile = (req, res) => {
     // userID = req.params.id
     let userName = req.params.id;
 
-    if (userName.trim().isEmpty()) {
+    if (!userName) {
 
         return res.status(404).send({ "message": "Please Specify username" });
 
     } else {
-        UserModel.findOne({ username: username }, (err, user) => {
+        UserModel.findOne({ username: userName }, (err, user) => {
             if (err) {
                 return res.status(401).send({ "message": "Something Error in server" });
             }

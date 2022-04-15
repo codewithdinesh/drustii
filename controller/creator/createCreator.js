@@ -28,7 +28,7 @@ const createCreator = async (req, res) => {
 
     if (req.user) {
 
-        var user_id = req.user.user_id;
+        var user_id = req.user;
 
         try {
 
