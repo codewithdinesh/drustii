@@ -29,6 +29,7 @@ const verifyOTP = require("../controller/verifyOTP");
 
 // check username
 const checkUsername = require('../controller/user/checkUsername');
+const videoSourceFile = require("../controller/videos/videoSourceFile");
 
 // store avatar
 const storeAvatar = require('../controller/user/storeAvatar').upload;
@@ -98,6 +99,9 @@ app.get("/v/:id", hostVideo);
 
 /* Delete Video */
 app.post("/video/delete?:id", auth, deleteVideo);
+
+
+app.get("/video/:id",videoSourceFile);
 
 
 /* Modify Video */
