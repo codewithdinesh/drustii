@@ -19,7 +19,7 @@ const verifiedUsers = require('../../model/verifiedUsers');
 
 /* Create Normal User */
 const createUser = async (req, res, next) => {
-
+    console.log(req.body)
     var email = req.body.email;
     var pass = req.body.pass;
     var retype_pass = req.body.retype_pass;
