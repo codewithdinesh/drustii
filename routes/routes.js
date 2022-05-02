@@ -1,9 +1,8 @@
 const express = require("express");
 const app = express.Router();
-const Fileupload = require("../controller/FileUpload");
-const upload = Fileupload.upload;
 const controller = require("../controller/controller");
 const emailVerification = require("../controller/sendConfirmOTP");
+const multer = require('multer');
 
 /* User operations create, login, delete*/
 const createUser = require("../controller/user/createUser");
@@ -20,7 +19,7 @@ const auth = require("../middleware/auth");
 
 /* Videos oprations */
 const uploadVideo = require("../controller/videos/uploadVideo");
-const hostVideo=require("../controller/videos/videoHost")
+const hostVideo = require("../controller/videos/videoHost")
 const getVideos = require("../controller/videos/getVideos");
 const getVideo = require("../controller/videos/getVideo");
 const deleteVideo = require("../controller/videos/deleteVideo");
@@ -83,7 +82,9 @@ app.get("/upload", (req, res) => {
     res.render("uploadVideo");
 });
 
-app.post("/upload", auth, upload.single("videoSource"), uploadVideo);
+// single("videoSource")
+
+app.post("/upload", auth, multer({ dest: 'temp/', limits: { fieldSize: 8 * 1024 * 1024 } }).fields([{ name: "videoSource", maxCount: 1 },{ name: "videoCover", maxCount: 1 }]), uploadVideo);
 
 
 /* Get All Videos */
@@ -101,7 +102,7 @@ app.get("/v/:id", hostVideo);
 app.post("/video/delete?:id", auth, deleteVideo);
 
 
-app.get("/video/:id",videoSourceFile);
+app.get("/video/:id", videoSourceFile);
 
 
 /* Modify Video */
