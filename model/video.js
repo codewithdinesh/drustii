@@ -17,9 +17,16 @@ const VideoSchema = new mongoose.Schema({
         required: [true, "description required"]
     },
 
-    privacy: {
-        
+    videoCategory: {
+        type: String
+    },
 
+    videoCover: {
+        type: String
+    },
+
+    privacy: {
+       
     },
     creator: {
         type: mongoose.Schema.Types.ObjectId,

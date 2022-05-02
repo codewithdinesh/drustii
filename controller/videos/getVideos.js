@@ -14,7 +14,7 @@ conCreate.once("open", () => {
 });
 
 const getVideos = (req, res) => {
-    VideoSchema.find({}, (err, files) => {
+    VideoSchema.find({"privacy":"public"}, (err, files) => {
         // check if files
         if (!files || files.length === 0) {
             return res.status(404).json({

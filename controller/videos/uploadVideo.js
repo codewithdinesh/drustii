@@ -33,9 +33,21 @@ const uploadVideo = async (req, res) => {
 
             const videoTitle = req.body.videoTitle;
             const videoDescription = req.body.videoDescription;
+
+            // public , private or shareonly
+            const videoPrivacy = req.body.videoPrivacy;
+
+            // if video is share only
+
+            let videoReadPermission = req.body.videoReadPermission;
+
+
             const videoCreator = req.user;
+
             const creatorID = req.creator; // creator schema ID
-            var videoCover, videoCoverParam, videoCoverSource = "https://drustii.s3.ap-south-1.amazonaws.com/videoCovers/f94b51d8-744f-4667-8a5a-8c0ef2920044.png", videofilename;
+
+
+            var videoCover, videoCoverParam, videoCoverSource = "videoCovers/f94b51d8-744f-4667-8a5a-8c0ef2920044.png", videofilename;
 
 
             if (!videoTitle) {
@@ -85,6 +97,7 @@ const uploadVideo = async (req, res) => {
                 }
             }
 
+
             const videoMimetype = video.mimetype;
 
             if (videoMimetype.startsWith("video")) {
@@ -99,6 +112,7 @@ const uploadVideo = async (req, res) => {
                     ContentType: "video/mp4"
                 };
 
+
                 // convert file to mp4
                 await s3.upload(videoparams, (err, data) => {
 
@@ -112,8 +126,28 @@ const uploadVideo = async (req, res) => {
                             videoid: videofilename,
                             title: videoTitle,
                             description: videoDescription,
-                            creator: videoCreator
+                            creator: videoCreator,
+                            videoCover: videoCoverSource
                         });
+
+                        if (videoPrivacy == "private") {
+                            newVideo.privacy = "private"
+                        } else if (videoPrivacy == "public") {
+                            newVideo.privacy = "public"
+                        } else if (videoPrivacy == "shareonly") {
+
+                            let share_only_user = videoReadPermission.split(",");
+                            
+                            console.log(share_only_user);
+
+                            newVideo.privacy = {
+                                privacy: "shareonly",
+
+                                "user": share_only_user
+                            }
+
+
+                        }
 
                         // delete temp file of video
 

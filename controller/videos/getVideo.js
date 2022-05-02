@@ -30,7 +30,7 @@ const getVideo = (req, res) => {
 
             // videoCover Link
 
-            
+
 
             res.send({ "video": files, "videoSource": signedUrl })
         });
