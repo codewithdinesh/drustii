@@ -40,9 +40,16 @@ const UserSchema = new mongoose.Schema({
 		default:
 			"https://pixabay.com/get/gb6f2bf53bddbdbe64a0cd6f29560f7653b199a0f1f5567667b4dd8ae7a1b1456cfa678cf981adc371750e07e668f17e322639b8f6c12f1b142368b2f80d65051_1280.jpg",
 	},
-	favoriteVideos: {
+	favoriteVideos: [{
+
 		/* list of favorite videos */
-	},
+		_id: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "video"
+		}
+	}
+	],
+
 	favoriteCreators: {
 		/* List of favorite creators  */
 		/* Following users list */

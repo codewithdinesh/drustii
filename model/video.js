@@ -26,12 +26,20 @@ const VideoSchema = new mongoose.Schema({
     },
 
     privacy: {
-       
+
+    },
+    videoCategory: {
+        type: String,
+        default: "entertainment"
     },
     creator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "creator",
         required: [true, "creator Id required"]
+    },
+    uploadOn: {
+        type: String,
+        default: new Date().toLocaleString()
     }
 });
 

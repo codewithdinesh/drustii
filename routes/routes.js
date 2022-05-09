@@ -25,23 +25,20 @@ const getVideo = require("../controller/videos/getVideo");
 const deleteVideo = require("../controller/videos/deleteVideo");
 const sendOTP = require("../controller/sendOTP");
 const verifyOTP = require("../controller/verifyOTP");
+const auth_video = require("../middleware/auth_video");
+const videoLike=require("../controller/videos/videoLike");
 
 // check username
 const checkUsername = require('../controller/user/checkUsername');
 const videoSourceFile = require("../controller/videos/videoSourceFile");
 
-// store avatar
-const storeAvatar = require('../controller/user/storeAvatar').upload;
-
-//store cover images of creator
-const storeCover = require("../controller/creator/storeCover").upload;
 
 
 app.get("/", controller.homePage);
 
 
 /* Create User */
-app.post("/create/user", storeAvatar.single('userAvatar'), createUser);
+app.post("/create/user", multer({ dest: "/temp" }).single('userAvatar'), createUser);
 
 app.get("/create/user", (req, res) => {
     res.render("userRegister");
@@ -66,7 +63,7 @@ app.get("/create/creator", (req, res) => {
     res.render("creatorRegister");
 });
 
-app.post("/create/creator", auth, storeCover.single('coverImg'), createCreator);
+app.post("/create/creator", auth, multer({ dest: "/temp" }).single('coverImg'), createCreator);
 
 
 /* Login User */
@@ -84,7 +81,7 @@ app.get("/upload", (req, res) => {
 
 // single("videoSource")
 
-app.post("/upload", auth, multer({ dest: 'temp/', limits: { fieldSize: 8 * 1024 * 1024 } }).fields([{ name: "videoSource", maxCount: 1 },{ name: "videoCover", maxCount: 1 }]), uploadVideo);
+app.post("/upload", auth, multer({ dest: 'temp/', limits: { fieldSize: 8 * 1024 * 1024 } }).fields([{ name: "videoSource", maxCount: 1 }, { name: "videoCover", maxCount: 1 }]), uploadVideo);
 
 
 /* Get All Videos */
@@ -92,21 +89,24 @@ app.get("/videos", getVideos);
 
 
 /* Get Specific Video */
-app.get("/video?:id", getVideo);
+app.get("/video?:id", auth_video, getVideo);
 
-/* stream video */
-app.get("/v/:id", hostVideo);
+app.get("/video/like?:id",auth,videoLike);
 
 
 /* Delete Video */
 app.post("/video/delete?:id", auth, deleteVideo);
 
 
-app.get("/video/:id", videoSourceFile);
 
 
 /* Modify Video */
 // app.post('/video/modify?:id');
+
+
+app.all("*", (Req, res, next) => {
+    return res.status(404).send({ "message": "page not found" })
+})
 
 
 

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "aws-sdk": "^2.1125.0",
     "bcrypt": "^5.0.1",
     "content-disposition": "^0.5.4",
@@ -8,7 +9,9 @@
     "dotenv": "^10.0.0",
     "ejs": "^3.0.2",
     "express": "^4.17.2",
+    "express-mongo-sanitize": "^2.2.0",
     "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
     "formidable": "^2.0.1",
     "gridfs-stream": "^1.1.1",
     "jsonwebtoken": "^8.5.1",

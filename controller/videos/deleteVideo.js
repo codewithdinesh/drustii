@@ -1,20 +1,18 @@
-const mongoose = require("mongoose");
-const Fileupload = require("../FileUpload");
 const VideoSchema = require("../../model/video");
 const TimeStamp = require("../TimeStamp");
-const config = require("../../config/config");
-const conCreate = require("../../config/db").conCreate;
-const connConnect = require("../../config/db").conConnect;
 const Creator = require("../../model/creator");
+var AWS = require('aws-sdk');
 
-let gfs;
+var s3 = new AWS.S3();
 
-conCreate.once("open", () => {
 
-  gfs = new mongoose.mongo.GridFSBucket(conCreate.db, {
-    bucketName: config.model,
-  });
+AWS.config.setPromisesDependency();
+AWS.config.update({
+  secretAccessKey: process.env.AWS_SECRET_KEY,
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  region: process.env.AWS_REGION
 });
+
 
 const deleteVideo = (req, res) => {
 
@@ -33,8 +31,8 @@ const deleteVideo = (req, res) => {
         }, (err, files) => {
 
           if (err) {
-            return res.status(500).json({
-              status: "something error while feching video",
+            return res.status(5001).json({
+              message: "something error while feching video",
               code: 500,
               ResponseCreated: TimeStamp(),
             });
@@ -59,20 +57,19 @@ const deleteVideo = (req, res) => {
                 }
               }).exec();
 
-            // Deleting video Files and Chunks
-            gfs.delete(new mongoose.Types.ObjectId(files.videoid),
-              (err, data) => {
-                if (err) {
-                  return res.status(404).json({
-                    status: "Video Not Found",
-                    code: 404,
-                    ResponseCreated: TimeStamp(),
-                  });
-                }
-                if (data) {
-                  console.log(data)
-                }
-              });
+
+            // deleting video from s3
+            const param = {
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: files.videoid
+            }
+
+            s3.deleteObject(param, (err, data) => {
+              if (err) {
+                return res.staus(501).send({ "message": "Something Error while deleting video" });
+              }
+              console.log("video deleted");
+            })
 
             return res.status(200).send({
               message: "video successfully deleted",

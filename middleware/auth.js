@@ -36,8 +36,13 @@ const verifyToken = (req, res, next) => {
             code: "403",
             ResponseCreated: TimeStamp(),
           });
+
         } else {
+
           req.user = decoded.user_id;
+          req.user_email = result.email;
+
+          
           if (result.creator) {
             creatorSchema.findOne({ _id: result.creator }, (creatorErr, creatorResult) => {
 

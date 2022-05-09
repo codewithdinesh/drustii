@@ -14,15 +14,35 @@ const userModel = require('../../model/User');
 
 const config = require("../../config/config");
 
+
+const crypto = require("crypto");
+
+// AWS
+const path = require('path');
+const fs = require('fs');
+const aws = require('aws-sdk');
+const multer = require('multer');
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+aws.config.setPromisesDependency();
+aws.config.update({
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    region: process.env.AWS_REGION
+});
+
+
+
 /* Create User */
 const createCreator = async (req, res) => {
 
     var cover;
-    if (req.file) {
 
-        cover = req.file.id;
+    var coverKey, coverPath, coverParam, coverFileKey;
 
-    }
 
     var description = req.body.description;
 
@@ -35,6 +55,37 @@ const createCreator = async (req, res) => {
             if (!(description)) {
 
                 return res.status(400).send(JSON.stringify({ "message": "Discription are required", "ResponseCreated": TimeStamp() }));
+            }
+
+            if (req.file) {
+
+                cover = req.file;
+
+                coverKey = crypto.randomUUID()
+
+                coverPath = cover.path;
+
+                const coverMimeType = cover.mimetype;
+
+                if (coverMimeType.startsWith("image")) {
+
+                    coverFileKey = "coverImages/" + coverKey + path.extname(cover.originalname);
+
+                    coverParam = {
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Body: fs.createReadStream(coverPath),
+                        Key: coverFileKey,
+                        ACL: 'public-read',
+                        ContentType: "image/png"
+                    }
+
+                }
+                else {
+
+                    return res.status(401).send({ "message": "Cover File should be Image File" });
+
+                }
+
             }
 
             const exists = await userModel.exists({ _id: user_id });
@@ -55,7 +106,22 @@ const createCreator = async (req, res) => {
                     });
 
                     if (cover) {
-                        newCreator.cover = cover;
+                        newCreator.cover = coverFileKey;
+
+                        s3.upload(coverParam, (err, response) => {
+                            if (err) {
+                                console.log("Error while uploading Cover Image")
+                            }
+                            console.log("Cover image Uploaded successfully")
+
+                        });
+
+                        fs.unlink(coverPath, (err) => {
+                            if (err) {
+                                console.log("error")
+                            }
+                            console.log("Temp file deleted")
+                        })
                     }
 
                     newCreator.save();
@@ -73,7 +139,6 @@ const createCreator = async (req, res) => {
                     return res.status(403).send({ "message": "you have a already creator account" });
 
                 }
-
 
             }
 

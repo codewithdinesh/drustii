@@ -4,6 +4,7 @@ const app = express();
 const router = require('./routes/routes')
 var cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser')
+const mongoSanitize = require('express-mongo-sanitize');
 
 // Middlewares
 app.use(express.json());

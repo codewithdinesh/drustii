@@ -1,9 +1,3 @@
-const mongoose = require('mongoose');
-
-const Fileupload = require("../FileUpload");
-
-const conCreate = require("../../config/db").conCreate;
-
 const connConnect = require("../../config/db").conConnect;
 
 const userModel = require('../../model/User');
@@ -15,23 +9,45 @@ const jwt = require('jsonwebtoken');
 const emailValidate = require('../emailValidate');
 
 const userNamevalidate = require("../userNameValidate");
+
 const verifiedUsers = require('../../model/verifiedUsers');
+const crypto = require("crypto");
+
+// AWS
+const path = require('path');
+const fs = require('fs');
+const aws = require('aws-sdk');
+const multer = require('multer');
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+aws.config.setPromisesDependency();
+aws.config.update({
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    region: process.env.AWS_REGION
+});
+
+
 
 /* Create Normal User */
 const createUser = async (req, res, next) => {
+
     console.log(req.body)
+    console.log(req.file)
+
     var email = req.body.email;
     var pass = req.body.pass;
     var retype_pass = req.body.retype_pass;
     var username = req.body.username;
     var name = req.body.name;
-    var avatar;
-    if (req.file) {
-        avatar = req.file.id;
-    }
-
+    var avatarPath;
     var dob = req.body.dob;
     var gender = req.body.gender;
+    var avatarKey, avatarFileName, avatarParam;
+    var avatarFile;
 
     const currentDate = new Date().getTime();
     const timestamp = new Date(currentDate);
@@ -72,6 +88,34 @@ const createUser = async (req, res, next) => {
 
     }
 
+
+
+    if (req.file) {
+        avatarFile = req.file;
+        var avatarFileMimeType = avatarFile.mimetype;
+        avatarKey = crypto.randomUUID();
+
+        if (avatarFileMimeType.startsWith("image")) {
+
+            avatarPath = avatarFile.originalname;
+
+            avatarFileName = "avatar/" + avatarKey + path.extname(avatarPath);
+
+            avatarParam = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Body: fs.createReadStream(avatarFile.path),
+                Key: avatarFileName,
+                ACL: 'public-read',
+                ContentType: "image/png"
+            }
+
+        } else {
+
+            return res.status(401).send({ "message": "please select avatar file as image file" });
+
+        }
+    }
+
     if (emailValidate(email) == true) {
 
         if (pass != retype_pass) {
@@ -99,8 +143,6 @@ const createUser = async (req, res, next) => {
 
                 } else {
 
-
-
                     if (!userNameExists) {
 
                         /* Encrypting password and storing user data to database*/
@@ -112,6 +154,10 @@ const createUser = async (req, res, next) => {
 
                                 if (err) return next(err);
 
+                                if (avatarPath) {
+
+                                }
+
                                 const newUser = new userModel({
                                     email: email,
                                     password: hash,
@@ -120,9 +166,26 @@ const createUser = async (req, res, next) => {
                                     dob: dob
                                 });
 
-                                if (avatar) {
-                                    newUser.avatar = avatar;
+                                // uploading avatar
+                                if (avatarFileName) {
+                                    newUser.avatar = avatarFileName;
+
+                                    s3.upload(avatarParam, (err, response) => {
+                                        if (err) {
+                                            console.log("Error while uploading Avatar")
+                                        }
+
+                                    });
+
+                                    fs.unlink(avatarFile.path, (err) => {
+                                        if (err) {
+                                            console.log("error")
+                                        }
+                                        console.log("Temp file deleted")
+                                    })
                                 }
+
+
                                 if (gender) {
                                     newUser.gender = gender;
                                 }
@@ -152,9 +215,6 @@ const createUser = async (req, res, next) => {
 
                                 res.cookie('token_id', token, options);
                                 return res.status(200).send({ "message": "account created successfully", "status": 200, "login_token": token, "email": email, "ResponseCreated": timestamp });
-
-                                // return res.redirect('/login');
-                                /*  next(); */
                             });
                         });
                     }
