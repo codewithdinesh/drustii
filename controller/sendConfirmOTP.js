@@ -4,27 +4,49 @@ const verifyOTP = require('../model/verifyOTP');
 
 const TimeStamp = require('./TimeStamp');
 
+
+// let { defaultProvider } = require("@aws-sdk/credential-provider-node");
+
+// const ses = new aws.SES({
+//   apiVersion: "2010-12-01",
+//   region: "us-east-1",
+//   defaultProvider,
+// });
+
+// // create Nodemailer SES transporter
+// let transporter = nodemailer.createTransport({
+//   SES: { ses, aws },
+// });
+
+
+// create Nodemailer SES transporter
+// let transporter = nodemailer.createTransport({
+//   SES: new AWS.SES({
+//     apiVersion: '2010-12-01'
+//   })
+// });
+
 var transport = nodemailer.createTransport({
-    host: process.env.HOST_EMAIL,
-    port: process.env.EMAIL_SMTP_PORT,
-    auth: {
-        user: process.env.EMAIL_SMTP_AUTH_USER,
-        pass: process.env.EMAIL_SMTP_AUTH_PASSWORD
-    }
+  host: process.env.HOST_EMAIL,
+  port: process.env.EMAIL_SMTP_PORT,
+  auth: {
+    user: process.env.EMAIL_SMTP_AUTH_USER,
+    pass: process.env.EMAIL_SMTP_AUTH_PASSWORD
+  }
 });
 
 const sendconfirmOTP = (req, reqEmail) => {
 
-    const OTP = Math.floor(100000 + Math.random() * 900000);
-    /* parseInt(Math.random() * 10000);  */
-    console.log(OTP);
+  const OTP = Math.floor(100000 + Math.random() * 900000);
+  /* parseInt(Math.random() * 10000);  */
+  console.log(OTP);
 
-    var message = {
-        from: 'noreply@drustii.in',
-        to: reqEmail,
-        subject: 'Confirm Email',
-        text: 'Please confirm your email',
-        html: `        
+  var message = {
+    from: 'noreply@drustii.in',
+    to: reqEmail,
+    subject: 'Confirm Email',
+    text: 'Please confirm your email',
+    html: `        
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html
           xmlns="http://www.w3.org/1999/xhtml"
@@ -1182,30 +1204,30 @@ const sendconfirmOTP = (req, reqEmail) => {
 
         
         `
-    };
+  };
 
-    transport.sendMail(message, async (error, info) => {
-        if (error) {
-            return res.status(400).send({ "message": "Something Error in internal server" })
-        }
-        console.log(info)
-        const exists = await verifyOTP.exists({ email: reqEmail });
+  transport.sendMail(message, async (error, info) => {
+    if (error) {
+      return res.status(400).send({ "message": "Something Error in internal server" })
+    }
+    console.log(info)
+    const exists = await verifyOTP.exists({ email: reqEmail });
 
-        if (!exists) {
-            const userOtp = new verifyOTP({
-                "email": reqEmail,
-                "otp": OTP
-            });
+    if (!exists) {
+      const userOtp = new verifyOTP({
+        "email": reqEmail,
+        "otp": OTP
+      });
 
-            userOtp.save();
+      userOtp.save();
 
-        } else {
-            verifyOTP.findOneAndUpdate({ email: reqEmail }, {
-                otp: OTP
-            }).exec();
-        }
+    } else {
+      verifyOTP.findOneAndUpdate({ email: reqEmail }, {
+        otp: OTP
+      }).exec();
+    }
 
-    });
+  });
 }
 
 module.exports = sendconfirmOTP;

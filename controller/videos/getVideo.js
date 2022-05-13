@@ -3,14 +3,19 @@ const likes = require('../../model/likes');
 const VideoSchema = require('../../model/video');
 const Views = require('../../model/Views');
 const TimeStamp = require('../TimeStamp');
+const Users = require('../../model/User');
 
 const getVideo = (req, res) => {
 
     let videoCoverUrl = " ";
     let VideoViews, videoUploadedOn, videoLikes;
 
+    // video ID
     var videoID = req.query.id
-    videoID = videoID.trim();
+
+    // false to not increase views, if true or not specified then increase video views
+    var vc = req.query.vc;
+
 
     VideoSchema.findOne({
 
@@ -28,10 +33,18 @@ const getVideo = (req, res) => {
             if (!files) {
                 return res.status(404).json({ "message": "video not found", "code": 404, "ResponseCreated": TimeStamp() });
             }
+            if (vc) {
+                if (vc == "true") {
+                    await Views.findOneAndUpdate({ _id: videoID }, {
+                        $inc: { Views: 1 }
+                    }).exec();
+                }
+            } else {
+                await Views.findOneAndUpdate({ _id: videoID }, {
+                    $inc: { Views: 1 }
+                }).exec();
+            }
 
-            await Views.findOneAndUpdate({ _id: videoID }, {
-                $inc: { Views: 1 }
-            }).exec();
 
             //videoUploaded on
             videoUploadedOn = files.uploadOn;
@@ -43,7 +56,7 @@ const getVideo = (req, res) => {
                     return res.status(500).send({ "message": "Eroor" })
                 }
                 if (!result_Views) {
-                    return res.status(409).send({ "message": "Views NOt Found" })
+                    return res.status(409).send({ "message": "Views Not Found" })
                 }
                 res.videoViews = result_Views.Views;
 
@@ -55,7 +68,7 @@ const getVideo = (req, res) => {
             await likes.findOne({ _id: videoID }, (err_likes, res_likes) => {
                 if (err_likes) {
 
-                    return res.staus(404).send({ "message": "Error while finding Likes of video" });
+                    return res.staus(501).send({ "message": "Error while finding Likes of video" });
 
                 }
 
@@ -69,66 +82,101 @@ const getVideo = (req, res) => {
                 //videoViews
                 VideoViews = res.videoViews;
 
-                const videoPrivacy = files.privacy;
+                const videoCreator = files.creator;
 
-                if (videoPrivacy.privacy == "shareonly") {
-                    if (req.user) {
-                        let i;
-                        if (videoPrivacy.user) {
-                            for (i = 0; i < videoPrivacy.user.length; i++) {
-                                if (videoPrivacy.user[i] == req.user_email) {
-                                    const videoKey = files.videoid;
-                                    // video Source link
-                                    const signedUrl = s3.getSignedUrl("getObject", {
-                                        Key: videoKey,
-                                        Bucket: process.env.AWS_BUCKET_NAME,
-                                        Expires: 12000
-                                    });
-                                    if (files.videoCover) {
-                                        videoCoverUrl = s3.getSignedUrl("getObject", {
-                                            Key: files.videoCover,
-                                            Bucket: process.env.AWS_BUCKET_NAME,
-                                            Expires: 12000
-                                        });
-                                    }
-                                    res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": files.creator, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
-                                    break;
-                                }
-                            }
-                        } else {
-                            return res.status(404).send({ "message": "You have not permission to access the video" })
-                        }
-                    } else {
-                        return res.status(404).send({ "message": "Please Login to access the video" })
+                Users.findOne({ _id: videoCreator }, (err_user, res_user) => {
+                    if (err_user) {
+                        return res.staus(501).send({ "message": "Error while finding Creator of video" });
                     }
-                } else {
-                    const videoKey = files.videoid;
-                    // video Source link
-                    const signedUrl = s3.getSignedUrl("getObject", {
-                        Key: videoKey,
+
+                    if (!res_user) {
+                        return res.status(401).send({ "message": "Video Creator are not found" });
+                    }
+
+                    const userName = res_user.username;
+                    const creatorName = res_user.name;
+                    let avatarKey;
+
+                    if (res_user.avatar) {
+                        avatarKey = res_user.avatar
+                    } else {
+                        avatarKey = "avatar/profile_img.png"
+                    }
+
+
+
+                    const avatar = s3.getSignedUrl("getObject", {
+                        Key: avatarKey,
                         Bucket: process.env.AWS_BUCKET_NAME,
                         Expires: 12000
                     });
 
-                    if (files.videoCover) {
-                        videoCoverUrl = s3.getSignedUrl("getObject", {
-                            Key: files.videoCover,
+
+                    const videoPrivacy = files.privacy;
+
+
+                    if (videoPrivacy.privacy == "shareonly") {
+                        if (req.user) {
+                            let i;
+                            if (videoPrivacy.user) {
+                                for (i = 0; i < videoPrivacy.user.length; i++) {
+                                    if (videoPrivacy.user[i] == req.user_email) {
+                                        const videoKey = files.videoid;
+
+                                        // video Source link
+                                        const signedUrl = s3.getSignedUrl("getObject", {
+                                            Key: videoKey,
+                                            Bucket: process.env.AWS_BUCKET_NAME,
+                                            Expires: 12000
+                                        });
+
+                                        let videoCoverKey;
+
+                                        if (files.videoCover) {
+                                            videoCoverKey = files.videoCover;
+                                        }
+
+                                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
+
+                                    }
+                                }
+                            } else {
+                                return res.status(404).send({ "message": "You have not permission to access the video" })
+                            }
+                        } else {
+                            return res.status(404).send({ "message": "Please Login to access the video" })
+                        }
+                    } else {
+
+                        const videoKey = files.videoid;
+
+                        // video Source link
+                        const signedUrl = s3.getSignedUrl("getObject", {
+                            Key: videoKey,
                             Bucket: process.env.AWS_BUCKET_NAME,
                             Expires: 12000
                         });
 
+                        if (files.videoCover) {
+                            videoCoverKey = files.videoCover;
+                        }
+
+                        videoCoverUrl = s3.getSignedUrl("getObject", {
+                            Key: videoCoverKey,
+                            Bucket: process.env.AWS_BUCKET_NAME,
+                            Expires: 12000
+                        });
+
+
+                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
                     }
+                });
 
-
-                    res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": files.creator, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
-                }
             }).clone().catch(function (err) { console.log(err) });
 
         } catch (e) {
             console.log(e)
         }
-
-
     }).clone().catch(function (err) { console.log(err) });
 }
 module.exports = getVideo;

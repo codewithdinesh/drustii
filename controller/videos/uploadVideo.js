@@ -15,9 +15,12 @@ const multer = require('multer');
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
+const ffmpeg_static = require('ffmpeg-static');
+
 const validateEmail = require("../emailValidate");
 const Views = require("../../model/Views");
 const likes = require("../../model/likes");
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 aws.config.setPromisesDependency();
@@ -58,7 +61,9 @@ const uploadVideo = async (req, res) => {
 
 
             // videoSourceCover have default  image if videoCover not selected
-            var videoCover, videoCoverParam, videoCoverSource = "", videofilename;
+
+            var videoCover, videoCoverParam, videoCoverSource = "", videofilename, videoCoverFileName;
+            let videoCoverKey;
 
 
             if (!videoTitle) {
@@ -77,18 +82,19 @@ const uploadVideo = async (req, res) => {
                 return res.status(404).send({ message: "Video File Not Selected" });
             }
 
-   
+
             const video = req.files.videoSource[0];
 
             if (!video) {
                 return res.status(400).send({ "message": "Video File is Required" });
             }
 
+
             if (videoPrivacy == "shareonly") {
 
                 if (!videoReadPermission) {
 
-                    return res.statu(400).send({ "message": "please specify " })
+                    return res.status(400).send({ "message": "please specify user to access user video " })
 
                 } else {
 
@@ -120,11 +126,12 @@ const uploadVideo = async (req, res) => {
             if (req.files.videoCover) {
 
                 videoCover = req.files.videoCover[0];
+                videoCoverFileName = videoCover.path;
                 videoCoverFileMimetype = videoCover.mimetype;
 
                 if (videoCoverFileMimetype.startsWith("image")) {
 
-                    const videoCoverKey = "videoCovers/" + videoKey + path.extname(videoCover.originalname);
+                    videoCoverKey = "videoCovers/" + videoKey + path.extname(videoCover.originalname);
 
                     videoCoverParam = {
                         Bucket: process.env.AWS_BUCKET_NAME,
@@ -141,10 +148,7 @@ const uploadVideo = async (req, res) => {
                 }
             }
 
-
             const videoMimetype = video.mimetype;
-
-
 
             if (videoMimetype.startsWith("video")) {
 
@@ -156,26 +160,26 @@ const uploadVideo = async (req, res) => {
                 await new Promise((resolve, reject) => {
 
                     ffmpeg(video.path).videoCodec("libx264").size('720x?').withAspect('16:9').saveToFile(videofilename).on("start", (err) => {
-                        console.log("video converted to mp4 ,done")
+
                     }).on("error", (err) => {
-                        console.log("error while converting ", err);
+                        res.status(401).send({ "message": "Error accure durinig video convert" })
                         reject();
 
-
                     }).on("end", (data) => {
-                        console.log("Done ", data);
+                        console.log("video converted");
                         resolve();
                     });
+                    return;
                 });
 
 
-                // dete temp file
+                // detele temp video file
                 fs.unlink(video.path, function (err) {
 
                     if (err) {
                         console.error(err);
                     }
-                    console.log('Temp File Delete');
+
                 });
 
 
@@ -191,69 +195,114 @@ const uploadVideo = async (req, res) => {
                 };
 
 
+                if (!videoCover) {
 
-                // convert file to mp4
-                await s3.upload(videoparams, (err, data) => {
+                    const videoCoverFileNameLocal = videoKey + ".png";
 
-                    if (err) {
-                        return res.staus(401).send({ "message": "Error While Uploading Video" })
+                    videoCoverFileName = "temp/" + videoKey + ".png";
+
+                    videoCoverKey = "videoCovers/" + videoKey + ".png";
+
+
+                    await new Promise((resolve, reject) => {
+
+                        ffmpeg(videofilename)
+                            .setFfmpegPath(ffmpeg_static)
+                            .screenshots(
+                                {
+                                    timestamps: [0.3],
+                                    count: 1,
+                                    folder: "temp/",
+                                    filename: videoCoverFileNameLocal,
+                                    size: "1280x720"
+                                }
+                            ).on("start", (err) => {
+
+                            }).on("error", (err) => {
+
+                                res.status(401).send({ "message": "error while Generating video Thumbnail" })
+                                reject();
+
+                            }).on("end", (data) => {
+
+                                resolve();
+                            })
+
+                    });
+
+                    videoCoverParam = {
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Body: fs.createReadStream(videoCoverFileName),
+                        Key: videoCoverKey,
+                        ACL: 'public-read',
+                        ContentType: "image/png"
                     }
-
-                    if (data) {
-
-                        const newVideo = new VideoSchema({
-                            videoid: videofileKey,
-                            title: videoTitle,
-                            description: videoDescription,
-                            creator: videoCreator,
-                            videoCover: videoCoverSource,
-                            videoCategory
-                        });
-
-                        if (videoPrivacy == "private") {
-
-                            newVideo.privacy = {
-                                privacy: "private"
-                            }
-
-                        } else if (videoPrivacy == "public") {
-
-                            newVideo.privacy = {
-                                privacy: "public"
-                            }
-
-                        } else if (videoPrivacy == "shareonly") {
-
-                            newVideo.privacy = {
-                                privacy: "shareonly",
-
-                                "user": share_only_user
-                            }
+                }
+                try {
 
 
+                    // convert file to mp4
+                    await s3.upload(videoparams, async (err, data) => {
+
+                        if (err) {
+                            return res.staus(401).send({ "message": "Error While Uploading Video" })
                         }
 
-                        // deteting video file
-                        fs.unlink(videofilename, (err) => {
-                            if (err) {
-                                console.log("Error while deleting Temp file")
+                        if (data) {
+                            let videoUploadedOn = new Date().toLocaleString();
+
+                            const newVideo = new VideoSchema({
+                                videoid: videofileKey,
+                                title: videoTitle,
+                                description: videoDescription,
+                                creator: videoCreator,
+                                videoCover: videoCoverKey,
+                                videoCategory,
+                                uploadOn: videoUploadedOn
+                            });
+
+                            if (videoPrivacy == "private") {
+
+                                newVideo.privacy = {
+                                    privacy: "private"
+                                }
+
+                            } else if (videoPrivacy == "public") {
+
+                                newVideo.privacy = {
+                                    privacy: "public"
+                                }
+
+                            } else if (videoPrivacy == "shareonly") {
+
+                                newVideo.privacy = {
+                                    privacy: "shareonly",
+
+                                    "user": share_only_user
+                                }
                             }
-                            console.log("Temp Deleted")
-                        });
 
 
-                        // uploading video cover
-                        if (videoCover) {
-
+                            // uploading video cover
                             s3.upload(videoCoverParam, async (cover_err, cover_data) => {
+
                                 if (cover_err) {
                                     return res.status(400).send({ "message": "error while uploading video cover, please try again" })
+                                }
+                                console.log("upload done videocover")
+
+                            });
+
+                            // deteting converted video file
+                            fs.unlink(videofilename, (err) => {
+                                if (err) {
+                                    console.log("Error while deleting Temp file")
                                 }
 
                             });
 
                             // delete temp file
-                            fs.unlink(videoCover.path, function (err) {
+                            fs.unlink(videoCoverFileName, function (err) {
 
                                 if (err) {
                                     console.error(err);
@@ -261,51 +310,52 @@ const uploadVideo = async (req, res) => {
                                 console.log('Temp File Delete');
                             });
 
+                            newVideo.save();
+
+                            // updating creator videos list
+                            creatorModel
+                                .findOneAndUpdate(
+                                    { _id: creatorID },
+                                    {
+                                        $push: { videos: newVideo._id },
+                                    },
+                                    { new: true }
+                                ).exec();
+
+                            const newViews = Views({
+                                _id: newVideo._id,
+                                Views: 0
+                            });
+
+                            const newLikes = likes({
+                                _id: newVideo._id,
+                                likes: 0
+
+                            });
+
+                            newLikes.save();
+                            newViews.save();
+
+                            return res
+                                .status(200)
+                                .send({
+                                    status: "Video Uploaded Successfully",
+                                    ResponseCreated: TimeStamp(),
+                                    videoID: newVideo._id,
+                                    creatorID: videoCreator,
+                                });
+
 
                         }
 
-                        newVideo.save();
-
-
-                        // updating creator videos list
-                        creatorModel
-                            .findOneAndUpdate(
-                                { _id: creatorID },
-                                {
-                                    $push: { videos: newVideo._id },
-                                },
-                                { new: true }
-                            ).exec();
-
-                        const newViews = Views({
-                            _id: newVideo._id,
-                            Views: 0
+                    });
+                } catch {
+                    return res
+                        .status(501).send({
+                            "message": "Something went wrong", ResponseCreated: TimeStamp(),
                         });
 
-                        const newLikes = likes({
-                            _id: newVideo._id,
-                            likes: 0
-
-                        });
-
-                        newLikes.save();
-
-                        newViews.save();
-
-                        return res
-                            .status(200)
-                            .send({
-                                status: "Video Uploaded Successfully",
-                                ResponseCreated: TimeStamp(),
-                                videoID: newVideo._id,
-                                creatorID: videoCreator,
-                            });
-
-
-                    }
-                });
-
-
+                }
 
             } else {
                 return res

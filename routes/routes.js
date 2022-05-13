@@ -12,6 +12,7 @@ const userProfile = require('../controller/user/userProfile');
 
 /* Creator Login and creation */
 const createCreator = require("../controller/creator/createCreator");
+const creatorDashboard = require("../controller/creator/creatorDashboard");
 
 
 /* Authentication Middelware */
@@ -26,7 +27,7 @@ const deleteVideo = require("../controller/videos/deleteVideo");
 const sendOTP = require("../controller/sendOTP");
 const verifyOTP = require("../controller/verifyOTP");
 const auth_video = require("../middleware/auth_video");
-const videoLike=require("../controller/videos/videoLike");
+const videoLike = require("../controller/videos/videoLike");
 
 // check username
 const checkUsername = require('../controller/user/checkUsername');
@@ -73,6 +74,7 @@ app.post("/login/user", userLogin);
 
 /* Public  user profile */
 app.get("/u/:id", userProfile);
+app.get("/c/:id", creatorDashboard);
 
 /* Upload video */
 app.get("/upload", (req, res) => {
@@ -81,7 +83,7 @@ app.get("/upload", (req, res) => {
 
 // single("videoSource")
 
-app.post("/upload", auth, multer({ dest: 'temp/', limits: { fieldSize: 8 * 1024 * 1024 } }).fields([{ name: "videoSource", maxCount: 1 }, { name: "videoCover", maxCount: 1 }]), uploadVideo);
+app.post("/upload", auth, multer({ dest: 'temp/' }).fields([{ name: "videoSource", maxCount: 1 }, { name: "videoCover", maxCount: 1 }]), uploadVideo);
 
 
 /* Get All Videos */
@@ -89,9 +91,9 @@ app.get("/videos", getVideos);
 
 
 /* Get Specific Video */
-app.get("/video?:id", auth_video, getVideo);
+app.get("/video?:id?:vc", auth_video, getVideo);
 
-app.get("/video/like?:id",auth,videoLike);
+app.get("/video/like?:id", auth, videoLike);
 
 
 /* Delete Video */
