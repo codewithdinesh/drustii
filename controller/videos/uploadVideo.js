@@ -1,8 +1,5 @@
-const mongoose = require("mongoose");
-const config = require("../../config/config");
-const conCreate = require("../../config/db").conCreate;
 const VideoSchema = require("../../model/video");
-const connConnect = require("../../config/db").conConnect;
+
 const creatorModel = require("../../model/creator");
 const TimeStamp = require("../TimeStamp");
 const crypto = require("crypto");
@@ -11,7 +8,6 @@ const crypto = require("crypto");
 const path = require('path');
 const fs = require('fs');
 const aws = require('aws-sdk');
-const multer = require('multer');
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
@@ -35,6 +31,9 @@ s3 = new aws.S3();
 
 
 const uploadVideo = async (req, res) => {
+
+    // console.log(req.body)
+    //console.log(req.files)
 
     // mov and mp4 are working 
 
@@ -67,15 +66,15 @@ const uploadVideo = async (req, res) => {
 
 
             if (!videoTitle) {
-                return res.status(400).send({ "message": "Video Title is Required" });
+                return res.status(404).send({ "message": "Video Title is Required" });
             }
 
             if (!videoDescription) {
-                return res.status(400).send({ "message": "Video Description is Required" });
+                return res.status(404).send({ "message": "Video Description is Required" });
             }
 
             if (!videoCreator) {
-                return res.status(400).send({ "message": "Video Creator is Required" });
+                return res.status(404).send({ "message": "Video Creator is Required" });
             }
 
             if (!req.files.videoSource) {
@@ -86,7 +85,7 @@ const uploadVideo = async (req, res) => {
             const video = req.files.videoSource[0];
 
             if (!video) {
-                return res.status(400).send({ "message": "Video File is Required" });
+                return res.status(404).send({ "message": "Video File is Required" });
             }
 
 
@@ -94,13 +93,13 @@ const uploadVideo = async (req, res) => {
 
                 if (!videoReadPermission) {
 
-                    return res.status(400).send({ "message": "please specify user to access user video " })
+                    return res.status(404).send({ "message": "please specify user to access user video " })
 
                 } else {
 
-                    videoReadPermission = videoReadPermission.replace(/\s\s+/g, ' ');
+                    videoReadPermission = videoReadPermission.replace(/\s+/g, ' ');
 
-                    videoReadPermission = videoReadPermission.toLowerCase().trim();
+                    videoReadPermission = videoReadPermission.toLowerCase().replace(/\s+/g, "");
 
                     videoReadPermission = videoReadPermission + "," + req.user_email;
 
@@ -111,7 +110,7 @@ const uploadVideo = async (req, res) => {
 
                         if (validateEmail(share_only_user[i]) == false) {
 
-                            return res.send({ "message": "Email to provide to access are invalid" });
+                            return res.status(404).send({ "message": "Email to provide to access are invalid" });
 
                         }
 
@@ -144,7 +143,7 @@ const uploadVideo = async (req, res) => {
                     videoCoverSource = videoCoverKey;
 
                 } else {
-                    return res.status(401).send({ "message": "Please Select Image File for VideoCover" });
+                    return res.status(415).send({ "message": "Please Select Image File for VideoCover" });
                 }
             }
 
@@ -267,12 +266,6 @@ const uploadVideo = async (req, res) => {
                                     privacy: "private"
                                 }
 
-                            } else if (videoPrivacy == "public") {
-
-                                newVideo.privacy = {
-                                    privacy: "public"
-                                }
-
                             } else if (videoPrivacy == "shareonly") {
 
                                 newVideo.privacy = {
@@ -280,6 +273,14 @@ const uploadVideo = async (req, res) => {
 
                                     "user": share_only_user
                                 }
+                            }
+                            else {
+
+                                newVideo.privacy = {
+                                    privacy: "public"
+                                }
+
+
                             }
 
 
@@ -359,7 +360,7 @@ const uploadVideo = async (req, res) => {
 
             } else {
                 return res
-                    .status(404).send({
+                    .status(408).send({
                         "message": "Select proper Video Type: mp4, avi, ogg, webm, wvm, m3u8, mov", ResponseCreated: TimeStamp(),
                     });
 
@@ -367,14 +368,14 @@ const uploadVideo = async (req, res) => {
 
         } else {
             return res
-                .status(404).send({
+                .status(401).send({
                     message: "only creator can upload the videos, Please Enable Creator Account",
                     ResponseCreated: TimeStamp(),
                 });
         }
     } else {
         return res
-            .status(404).send({
+            .status(401).send({
                 message: "Please Login to upload videos",
                 ResponseCreated: TimeStamp(),
             });

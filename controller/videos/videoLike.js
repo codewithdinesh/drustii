@@ -19,11 +19,11 @@ const LikeVideo = async (req, res) => {
         }, (err, files) => {
 
             if (err) {
-                return res.status(500).json({ "message": "something error while finding video", "code": 404, "ResponseCreated": TimeStamp() });
+                return res.status(500).json({ "message": "something error while finding video", "status": 404, "ResponseCreated": TimeStamp() });
             }
 
             if (!files) {
-                return res.status(404).json({ "message": "video not found", "code": 404, "ResponseCreated": TimeStamp() });
+                return res.status(404).json({ "message": "video not found", "status": 404, "ResponseCreated": TimeStamp() });
             }
 
             // condition to check check current user is already liked or not
@@ -74,7 +74,7 @@ const LikeVideo = async (req, res) => {
                     })
 
 
-                    return res.status(200).send({ "message": "video liked" });
+                    return res.status(200).send({ "message": "video liked", "status": 200 });
                 }
 
                 if (!result) {
@@ -128,7 +128,7 @@ const LikeVideo = async (req, res) => {
                                 }
                             })
 
-                            return res.status(201).send({ "message": "Disliked video" });
+                            return res.status(201).send({ "message": "Disliked video", "status": 201 });
 
                         }
                     })

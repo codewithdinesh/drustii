@@ -43,5 +43,8 @@ const VideoSchema = new mongoose.Schema({
     }
 });
 
+VideoSchema.index({ title: 'text', description: 'text',videoCategory:'text', tags: 'text' });
+
 const Video = mongoose.model('video', VideoSchema);
+Video.createIndexes();
 module.exports = Video;

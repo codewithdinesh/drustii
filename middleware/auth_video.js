@@ -6,7 +6,7 @@ const userSchema = require("../model/User");
 
 const verifyToken = (req, res, next) => {
 
-    const token = req.header.token || req.body.token || req.cookies.token_id;
+    const token = req.headers.token || req.cookies.token_id;
 
     if (token) {
 

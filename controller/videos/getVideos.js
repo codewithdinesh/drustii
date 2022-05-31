@@ -16,13 +16,36 @@ const getVideos = (req, res) => {
     var videoList = [];
 
     var categories;
+    var creator;
+    let findCondition;
 
-    // if (req.query.categories) {
-    //     categories = req.query.categories;
+    if (req.query.categories) {
+        categories = req.query.categories;
+        categories=categories.trim()
+    }
 
-    // }
+    if (req.query.c) {
+        creator = req.query.c;
+    }
 
-    let findCondition = { "privacy": { "privacy": "public" } };
+    if (!categories) {
+        if (!creator) {
+            findCondition = { "privacy": { "privacy": "public" } };
+
+        }
+        else {
+            findCondition = { "privacy": { "privacy": "public" }, "creator": creator };
+        }
+
+    } else {
+        if (!creator) {
+            findCondition = { "privacy": { "privacy": "public" }, "videoCategory": categories };
+        }
+        else {
+            findCondition = { "privacy": { "privacy": "public" }, "videoCategory": categories, "creator": creator };
+        }
+    }
+
 
     VideoSchema.find(findCondition, async (err, files) => {
 

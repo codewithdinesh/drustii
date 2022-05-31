@@ -5,12 +5,12 @@ const creatorSchema = require("../model/creator");
 const userSchema = require("../model/User");
 
 const verifyToken = (req, res, next) => {
-  const token = req.header.token || req.body.token || req.cookies.token_id;
+  const token = req.headers.token || req.cookies.token_id ;
 
   if (!token) {
-    return res.status(403).send({
-      status: "Authentication is required",
-      code: "403",
+    return res.status(401).send({
+      message: "Authentication is required",
+      code: "401",
       ResponseCreated: TimeStamp(),
     });
   }
@@ -23,17 +23,17 @@ const verifyToken = (req, res, next) => {
       userSchema.findOne({ token: token }, (err, result) => {
 
         if (err)
-          return res.status(403).send({
-            status: "Authentication Error",
-            code: "403",
+          return res.status(400).send({
+            message: "Authentication Error",
+            code: "400",
             ResponseCreated: TimeStamp(),
           });
 
 
         if (!result) {
-          return res.status(403).send({
-            status: "Invalid Authentication",
-            code: "403",
+          return res.status(400).send({
+            message: "Invalid Authentication",
+            code: "400",
             ResponseCreated: TimeStamp(),
           });
 
@@ -42,7 +42,7 @@ const verifyToken = (req, res, next) => {
           req.user = decoded.user_id;
           req.user_email = result.email;
 
-          
+
           if (result.creator) {
             creatorSchema.findOne({ _id: result.creator }, (creatorErr, creatorResult) => {
 
@@ -65,7 +65,7 @@ const verifyToken = (req, res, next) => {
     }
     /*  res.status(200).json({ "status": "Verification Success", "code": "200", "ResponseCreated": timestamp, "user": req.user }) */
   } catch (err) {
-    return res.status(401).send({ message: "Invalid Token" });
+    return res.status(400).send({ message: "Invalid Token" });
   }
 
 };

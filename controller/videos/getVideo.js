@@ -4,6 +4,7 @@ const VideoSchema = require('../../model/video');
 const Views = require('../../model/Views');
 const TimeStamp = require('../TimeStamp');
 const Users = require('../../model/User');
+const mongoose = require("mongoose")
 
 const getVideo = (req, res) => {
 
@@ -16,6 +17,15 @@ const getVideo = (req, res) => {
     // false to not increase views, if true or not specified then increase video views
     var vc = req.query.vc;
 
+    if (!videoID) {
+        return res.status(404).json({ "message": "video not found", "code": 404, "ResponseCreated": TimeStamp() });
+    }
+
+ 
+    if (!mongoose.isValidObjectId(videoID)) {
+        return res.status(405).json({ "message": "video not found", "code": 404, "ResponseCreated": TimeStamp() });
+    }
+
 
     VideoSchema.findOne({
 
@@ -26,7 +36,7 @@ const getVideo = (req, res) => {
 
 
             if (err) {
-                return res.status(500).json({ "message": "something error while finding video", "code": 404, "ResponseCreated": TimeStamp() });
+                return res.status(404).json({ "message": "something error while finding video", "code": 404, "ResponseCreated": TimeStamp() });
             }
 
 
@@ -114,12 +124,17 @@ const getVideo = (req, res) => {
 
                     const videoPrivacy = files.privacy;
 
+                    const videoCategory = files.videoCategory;
+
 
                     if (videoPrivacy.privacy == "shareonly") {
+                        const videoReadPermissions = videoPrivacy.user
                         if (req.user) {
                             let i;
-                            if (videoPrivacy.user) {
-                                for (i = 0; i < videoPrivacy.user.length; i++) {
+                            if (videoReadPermissions) {
+
+
+                                for (i = 0; i < videoReadPermissions.length; i++) {
                                     if (videoPrivacy.user[i] == req.user_email) {
                                         const videoKey = files.videoid;
 
@@ -136,15 +151,22 @@ const getVideo = (req, res) => {
                                             videoCoverKey = files.videoCover;
                                         }
 
-                                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
+                                        videoCoverUrl = s3.getSignedUrl("getObject", {
+                                            Key: videoCoverKey,
+                                            Bucket: process.env.AWS_BUCKET_NAME,
+                                            Expires: 12000
+                                        });
+
+
+                                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, videoCategory, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
 
                                     }
                                 }
                             } else {
-                                return res.status(404).send({ "message": "You have not permission to access the video" })
+                                return res.status(403).send({ "message": "You have not permission to access the video" })
                             }
                         } else {
-                            return res.status(404).send({ "message": "Please Login to access the video" })
+                            return res.status(401).send({ "message": "Please Login to access the video" })
                         }
                     } else {
 
@@ -168,7 +190,7 @@ const getVideo = (req, res) => {
                         });
 
 
-                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
+                        return res.send({ "videoID": files._id, "videoTitle": files.title, "videoDescription": files.description, videoCategory, "videoCreator": videoCreator, creatorName, userName, avatar, "videoSource": signedUrl, "videoCover": videoCoverUrl, "videoViews": VideoViews, videoLikes, videoUploadedOn });
                     }
                 });
 

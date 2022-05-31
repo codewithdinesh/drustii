@@ -20,7 +20,6 @@ const auth = require("../middleware/auth");
 
 /* Videos oprations */
 const uploadVideo = require("../controller/videos/uploadVideo");
-const hostVideo = require("../controller/videos/videoHost")
 const getVideos = require("../controller/videos/getVideos");
 const getVideo = require("../controller/videos/getVideo");
 const deleteVideo = require("../controller/videos/deleteVideo");
@@ -31,7 +30,7 @@ const videoLike = require("../controller/videos/videoLike");
 
 // check username
 const checkUsername = require('../controller/user/checkUsername');
-const videoSourceFile = require("../controller/videos/videoSourceFile");
+const searchVideo = require("../controller/videos/searchVideo");
 
 
 
@@ -72,28 +71,36 @@ app.get("/login/user", controller.loginPage);
 app.post("/login/user", userLogin);
 
 
-/* Public  user profile */
-app.get("/u/:id", userProfile);
+
+/* Private user profile */
+app.get("/u", auth, userProfile);
+
+
+/* Public creator profile */
 app.get("/c/:id", creatorDashboard);
+
+
 
 /* Upload video */
 app.get("/upload", (req, res) => {
     res.render("uploadVideo");
 });
 
-// single("videoSource")
 
+// single("videoSource")
 app.post("/upload", auth, multer({ dest: 'temp/' }).fields([{ name: "videoSource", maxCount: 1 }, { name: "videoCover", maxCount: 1 }]), uploadVideo);
 
 
 /* Get All Videos */
-app.get("/videos", getVideos);
+app.get("/videos?:categories?:c", getVideos);
 
 
 /* Get Specific Video */
 app.get("/video?:id?:vc", auth_video, getVideo);
 
 app.get("/video/like?:id", auth, videoLike);
+
+app.get("/video/search?:search", searchVideo)
 
 
 /* Delete Video */
@@ -109,10 +116,6 @@ app.post("/video/delete?:id", auth, deleteVideo);
 app.all("*", (Req, res, next) => {
     return res.status(404).send({ "message": "page not found" })
 })
-
-
-
-
 
 
 module.exports = app;

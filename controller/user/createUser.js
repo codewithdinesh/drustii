@@ -137,7 +137,7 @@ const createUser = async (req, res, next) => {
 
                 if (exists) {
 
-                    return res.status(409).send({ "email": email, "status": 409, "message": "already having account", "ResponseCreated": timestamp });
+                    return res.status(404).send({ "email": email, "status": 409, "message": "already having account", "ResponseCreated": timestamp });
 
                     // res.redirect('/login');
 
