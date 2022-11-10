@@ -24,18 +24,19 @@ This is a server of drusti an video social media app which is similar to the You
 #### Add Environment Variable
 1) create `.env` file in parent folder
 2) add following
-- PORT=port number for server
-- DB_URL= mongodb database url
-- DB_URL_Local= for testing on local database 
-- SECRET_KEY= add jwt secret key
-- HOST_EMAIL=smtp host address for mail
-- EMAIL_SMTP_AUTH_USER= smtp user address
-- EMAIL_SMTP_AUTH_PASSWORD=smtp password
-- EMAIL_SMTP_PORT=smtp port number
-- AWS_ACCESS_KEY= aws access key
-- AWS_SECRET_KEY= aws secret key
-- AWS_REGION= aws region code
-- AWS_BUCKET_NAME= aws s3 bucket name
+```PORT=port number for server
+DB_URL= mongodb database url
+DB_URL_Local= for testing on local database 
+SECRET_KEY= add jwt secret key
+HOST_EMAIL=smtp host address for mail
+EMAIL_SMTP_AUTH_USER= smtp user address
+EMAIL_SMTP_AUTH_PASSWORD=smtp password
+EMAIL_SMTP_PORT=smtp port number
+AWS_ACCESS_KEY= aws access key
+AWS_SECRET_KEY= aws secret key
+AWS_REGION= aws region code
+AWS_BUCKET_NAME= aws s3 bucket name
+```
 
 #### Run server
 3) Run `npm start` command to run server.
